@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "Profile": {
+      "title": "Profile",
+      "description": "Corps Member profile details and service status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "full_name": { "type": "string" },
+        "phone": { "type": "string" },
+        "state_code": { "type": "string" },
+        "state_of_deployment": { "type": "string" },
+        "lga": { "type": "string" },
+        "batch_stream": { "type": "string" },
+        "current_phase": { "type": "string" },
+        "ppa_name": { "type": "string" },
+        "cds_group": { "type": "string" },
+        "is_admin": { "type": "boolean" },
+        "swearing_in_date": { "type": "string" },
+        "pop_date": { "type": "string" }
+      },
+      "required": ["id", "full_name"]
+    },
+    "UserFeedback": {
+      "title": "UserFeedback",
+      "description": "User feedback and issue reports submitted by corps members",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "user_name": { "type": "string" },
+        "user_phone": { "type": "string" },
+        "category": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string" },
+        "created_at": { "type": "string" }
+      },
+      "required": ["id", "user_id", "message", "status"]
+    },
+    "CalendarEvent": {
+      "title": "CalendarEvent",
+      "description": "Synchronized NYSC service events and deadlines for Google Calendar",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "start_time": { "type": "string" },
+        "end_time": { "type": "string" },
+        "google_event_id": { "type": "string" },
+        "event_type": { "type": "string" }
+      },
+      "required": ["id", "user_id", "title", "start_time"]
+    }
+  },
+  "firestore": {
+    "/profiles/{userId}": {
+      "schema": "Profile",
+      "description": "User profile collection partitioned by user ID"
+    },
+    "/user_feedback/{feedbackId}": {
+      "schema": "UserFeedback",
+      "description": "Feedback inbox collection for admin triage and response"
+    },
+    "/calendar_events/{eventId}": {
+      "schema": "CalendarEvent",
+      "description": "Calendar events synced with Google Calendar"
+    }
+  }
+}
