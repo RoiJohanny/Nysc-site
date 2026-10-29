@@ -28,8 +28,12 @@ import {
   Check,
   Edit2,
   HelpCircle,
-  RotateCcw
+  RotateCcw,
+  GraduationCap,
+  Tent,
+  FileCheck
 } from 'lucide-react';
+import { CampGuideView } from './CampGuideView';
 
 interface DashboardViewProps {
   onNavigateTab: (tabId: 'home' | 'hub' | 'network' | 'career') => void;
@@ -247,8 +251,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
             </h1>
 
             <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
-              Serving at <strong className="text-white">{profile.ppa_name}</strong> • Member of{' '}
-              <strong className="text-amber-300">{profile.cds_group}</strong>.
+              {profile.current_phase === 'PCM' && (
+                <span>🎓 <strong>Prospective Corps Member:</strong> Preparing for mobilization, call-up letter printing, and orientation camp deployment in <strong className="text-white">{profile.state_of_deployment}</strong>.</span>
+              )}
+              {profile.current_phase === 'CAMP' && (
+                <span>🏕️ <strong>Orientation Camp Active:</strong> 21-day physical drill, early morning bugle, SAED lectures, and camp social events in <strong className="text-white">{profile.state_of_deployment}</strong>.</span>
+              )}
+              {profile.current_phase === 'ACTIVE' && (
+                <span>🎖️ Serving at <strong className="text-white">{profile.ppa_name}</strong> • Member of <strong className="text-amber-300">{profile.cds_group}</strong>.</span>
+              )}
+              {profile.current_phase === 'POP' && (
+                <span>🏆 <strong>Passing Out Parade (Discharged):</strong> Congratulations on fulfilling your national service obligation to Nigeria!</span>
+              )}
             </p>
           </div>
 
@@ -311,6 +325,254 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
 
         </div>
       </div>
+
+      {/* =========================================================================
+          PHASE-SPECIFIC INTERACTIVE MODULES (PCM / CAMP / POP)
+         ========================================================================= */}
+
+      {/* 1. PCM PHASE: Mobilization & Camp Entry Command Center */}
+      {profile.current_phase === 'PCM' && (
+        <div className="bg-slate-900/95 rounded-3xl border border-blue-500/40 p-5 sm:p-7 shadow-2xl space-y-5 relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎓</span>
+                <h2 className="text-base sm:text-lg font-extrabold text-white">
+                  PCM Mobilization & Orientation Camp Prep Hub
+                </h2>
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                  Prospective Corps Member
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Everything required before reporting to NYSC Orientation Camp in {profile.state_of_deployment} State.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <a
+                href="https://portal.nysc.org.ng/NYSC1/CallUpLetter.aspx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md"
+              >
+                <span>Print Call-Up Slip</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
+              <button
+                onClick={() => switchPhase('CAMP')}
+                className="px-3.5 py-2 rounded-xl bg-[#008751] hover:bg-[#006f43] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md"
+                title="Transition to Camp Phase once arrived at camp"
+              >
+                <span>Enter Camp Phase 🏕️</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4 Core Pre-Camp Requirements Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-lg">📄</span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Ready
+                </span>
+              </div>
+              <h4 className="text-xs font-bold text-white">1. Call-Up Letter & Slip</h4>
+              <p className="text-[11px] text-slate-400 leading-snug">
+                Print 5 colored and 5 black-and-white photocopies. Never laminate this original document.
+              </p>
+              <a
+                href="https://portal.nysc.org.ng/NYSC1/CallUpLetter.aspx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] text-blue-400 hover:underline font-semibold block pt-1"
+              >
+                Download Slip ↗
+              </a>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-lg">🟩</span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Ready
+                </span>
+              </div>
+              <h4 className="text-xs font-bold text-white">2. Green Card Registration</h4>
+              <p className="text-[11px] text-slate-400 leading-snug">
+                Must contain clear biometric barcode and institutional stamp from your university or polytechnic.
+              </p>
+              <a
+                href="https://portal.nysc.org.ng/NYSC1/GreenCard.aspx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] text-emerald-400 hover:underline font-semibold block pt-1"
+              >
+                Verify Green Card ↗
+              </a>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-lg">🏥</span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  Mandatory
+                </span>
+              </div>
+              <h4 className="text-xs font-bold text-white">3. Medical Fitness Slip</h4>
+              <p className="text-[11px] text-slate-400 leading-snug">
+                Must be issued by a recognized Government or General Hospital (with blood group, genotype & chest X-Ray).
+              </p>
+              <button
+                onClick={() => onNavigateTab('hub')}
+                className="text-[11px] text-amber-300 hover:underline font-semibold block pt-1 text-left"
+              >
+                Store in Document Vault ↗
+              </button>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-lg">🎒</span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  35 Items
+                </span>
+              </div>
+              <h4 className="text-xs font-bold text-white">4. White Wear & Provisions</h4>
+              <p className="text-[11px] text-slate-400 leading-snug">
+                White round-neck vests, tennis shoes, waist pouch, mosquito net, and flashlight.
+              </p>
+              <button
+                onClick={() => switchPhase('CAMP')}
+                className="text-[11px] text-purple-300 hover:underline font-semibold block pt-1 text-left"
+              >
+                Open Packing Toolkit ↗
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. CAMP PHASE: 21-Day Orientation Camp Toolkit */}
+      {profile.current_phase === 'CAMP' && (
+        <div className="space-y-4">
+          <div className="bg-slate-900/95 rounded-3xl border border-rose-500/40 p-4 sm:p-6 shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-xl shrink-0">
+                🏕️
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-extrabold text-white">
+                  Orientation Camp Phase Active (21 Days)
+                </h3>
+                <p className="text-xs text-slate-300">
+                  Interactive camp packing checklist, NYSC Anthem sing-along player, and camp rules guide.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => switchPhase('ACTIVE')}
+              className="px-4 py-2 rounded-xl bg-[#008751] hover:bg-[#006f43] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shrink-0"
+              title="Graduated from camp and deployed to Primary Assignment"
+            >
+              <span>Camp Done? Advance to Active Service 🎖️</span>
+            </button>
+          </div>
+
+          <CampGuideView />
+        </div>
+      )}
+
+      {/* 3. POP PHASE: Passing Out Parade & Discharged Alumni Hub */}
+      {profile.current_phase === 'POP' && (
+        <div className="bg-slate-900/95 rounded-3xl border border-amber-500/40 p-5 sm:p-7 shadow-2xl space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🏆</span>
+                <h2 className="text-base sm:text-lg font-extrabold text-white">
+                  Passing Out Parade (POP) & Discharged Alumni Hub
+                </h2>
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  Service Completed
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Final clearance sign-offs, NYSC Discharge Certificate validation, and career launchpad.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <a
+                href="https://verify.nysc.org.ng"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-all"
+              >
+                <span>Verify Discharge Cert</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
+              <button
+                onClick={() => onNavigateTab('career')}
+                className="px-3.5 py-2 rounded-xl bg-[#008751] hover:bg-[#006f43] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md"
+              >
+                <span>Export Career CV Draft 💼</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4-Step Final Discharge Clearance Checklist */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/80 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-emerald-400">STAGE 1</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              </div>
+              <h4 className="text-xs font-bold text-white">PPA Final Release Letter</h4>
+              <p className="text-[11px] text-slate-400">
+                Official release letter and evaluation letter stamped by your employer or principal.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/80 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-emerald-400">STAGE 2</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              </div>
+              <h4 className="text-xs font-bold text-white">CDS Inspector Clearance</h4>
+              <p className="text-[11px] text-slate-400">
+                All weekly CDS attendance and project dues settled and signed by your CDS schedule officer.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/80 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-emerald-400">STAGE 3</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              </div>
+              <h4 className="text-xs font-bold text-white">LGI Final Sign-Off</h4>
+              <p className="text-[11px] text-slate-400">
+                Local Government Inspector signs off on your final biometric book and state clearance slip.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/80 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold text-amber-400">STAGE 4</span>
+                <Award className="w-4 h-4 text-amber-400" />
+              </div>
+              <h4 className="text-xs font-bold text-white">Discharge Certificate</h4>
+              <p className="text-[11px] text-slate-400">
+                Collect your Certificate of National Service at the Passing Out Parade ground.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* =========================================================================
           2. MULTI-SOURCE FINANCIAL HUB & REMAINING BALANCE CALCULATOR

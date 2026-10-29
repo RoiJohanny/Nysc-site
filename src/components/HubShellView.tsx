@@ -32,7 +32,7 @@ export const HubShellView: React.FC<HubShellViewProps> = ({ initialSubModule = '
 
   const subModules = [
     { id: 'all', label: 'All Modules', icon: Layers, desc: 'Map, Clearance & Locker' },
-    { id: 'map', label: 'Google Maps', icon: Navigation, desc: 'PPA & CDS Geolocation' },
+    { id: 'map', label: 'Service Map', icon: Navigation, desc: 'PPA & CDS Geolocation' },
     { id: 'calendar', label: 'Google Calendar', icon: Calendar, desc: 'Sync CDS & Clearance' },
     { id: 'clearance', label: 'Biometrics', icon: CheckCircle2, desc: 'Clearance Checklist' },
     { id: 'vault', label: 'Doc Locker', icon: ShieldCheck, desc: 'Encrypted Vault' },

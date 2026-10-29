@@ -1,7 +1,9 @@
 {
   "name": "My NYSC Companion",
   "description": "The ultimate companion app for Nigerian corps members: monthly biometric clearance tracking, ₦77,000 alawee financial hub, encrypted document vault, CDS logbook, SAED notes, corper marketplace, and emergency SOS.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": [
+    "geolocation"
+  ],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]

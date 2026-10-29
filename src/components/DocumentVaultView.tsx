@@ -18,12 +18,14 @@ import {
   Upload,
   Image as ImageIcon
 } from 'lucide-react';
+import { exportDocumentVaultPdf } from '../lib/pdfExport';
 
 export const DocumentVaultView: React.FC = () => {
-  const { vaultDocuments, addVaultDocument, deleteVaultDocument, fireConfetti } = useNysc();
+  const { profile, vaultDocuments, addVaultDocument, deleteVaultDocument, fireConfetti } = useNysc();
 
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<DocumentVaultItem | null>(null);
+  const [downloadToast, setDownloadToast] = useState<string | null>(null);
 
   // Form states
   const [docType, setDocType] = useState<DocumentVaultItem['document_type']>('Call Up Letter');
@@ -77,25 +79,24 @@ export const DocumentVaultView: React.FC = () => {
   };
 
   const handleSimulateDownload = (doc: DocumentVaultItem) => {
-    if (doc.file_url.startsWith('data:')) {
-      const link = document.createElement('a');
-      link.href = doc.file_url;
-      link.download = doc.file_name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      const element = document.createElement('a');
-      const file = new Blob([`Official NYSC Document: ${doc.document_type}\nFile: ${doc.file_name}\nStatus: Verified and Encrypted`], {
-        type: 'text/plain'
-      });
-      element.href = URL.createObjectURL(file);
-      element.download = doc.file_name;
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
+    try {
+      if (doc.file_url.startsWith('data:')) {
+        const link = document.createElement('a');
+        link.href = doc.file_url;
+        link.download = doc.file_name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        // Generate authentic official NYSC PDF document with verification seal and user profile
+        exportDocumentVaultPdf(doc, profile);
+      }
+      fireConfetti();
+      setDownloadToast(`Downloaded "${doc.file_name}" successfully.`);
+      setTimeout(() => setDownloadToast(null), 3500);
+    } catch (err) {
+      console.error('Failed to download document:', err);
     }
-    fireConfetti();
   };
 
   const isImageFile = (doc: DocumentVaultItem) => {
@@ -105,6 +106,14 @@ export const DocumentVaultView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      
+      {/* Download Success Banner */}
+      {downloadToast && (
+        <div className="p-3.5 rounded-2xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-semibold flex items-center gap-2.5 shadow-lg animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{downloadToast}</span>
+        </div>
+      )}
       
       {/* Top Banner */}
       <div className="bg-slate-900/90 p-6 rounded-3xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">

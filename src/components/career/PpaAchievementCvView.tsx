@@ -20,6 +20,8 @@ import {
   GraduationCap
 } from 'lucide-react';
 
+import { exportCvToPdf } from '../../lib/pdfExport';
+
 export const PpaAchievementCvView: React.FC = () => {
   const {
     profile,
@@ -35,6 +37,8 @@ export const PpaAchievementCvView: React.FC = () => {
   const [skillTagsInput, setSkillTagsInput] = useState('');
   const [logDate, setLogDate] = useState(new Date().toISOString().split('T')[0]);
   const [copiedCv, setCopiedCv] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [exportSuccessMessage, setExportSuccessMessage] = useState<string | null>(null);
 
   // Suggested STAR action verbs for Nigerian CVs
   const starActionVerbs = [
@@ -157,10 +161,22 @@ EDUCATION & CREDENTIALS
     element.click();
     document.body.removeChild(element);
     fireConfetti();
+    setExportSuccessMessage('CV Draft downloaded as text (.txt) file!');
+    setTimeout(() => setExportSuccessMessage(null), 4000);
   };
 
-  const handlePrintCv = () => {
-    window.print();
+  const handleExportPdf = () => {
+    try {
+      setIsExportingPdf(true);
+      exportCvToPdf(profile, ppaWorkLogs, compiledSkills);
+      fireConfetti();
+      setExportSuccessMessage('ATS-Ready CV exported successfully as PDF!');
+      setTimeout(() => setExportSuccessMessage(null), 4000);
+    } catch (err) {
+      console.error('Failed to export CV to PDF:', err);
+    } finally {
+      setIsExportingPdf(false);
+    }
   };
 
   return (
@@ -183,34 +199,52 @@ EDUCATION & CREDENTIALS
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
           <button
             onClick={handleCopyCv}
-            className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-all"
+            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-all"
             title="Copy CV text to clipboard"
           >
             {copiedCv ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-blue-400" />}
-            <span>{copiedCv ? 'Copied CV!' : 'Copy CV'}</span>
+            <span>{copiedCv ? 'Copied CV!' : 'Copy'}</span>
           </button>
 
           <button
-            onClick={handlePrintCv}
-            className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-all hover:scale-102"
-            title="Print or Save CV as PDF"
+            onClick={handleDownloadTxt}
+            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-all hover:scale-102"
+            title="Download plain text CV (.txt)"
           >
-            <Printer className="w-4 h-4 text-emerald-400" />
-            <span>Export CV as PDF</span>
+            <FileText className="w-4 h-4 text-slate-300" />
+            <span>.TXT</span>
+          </button>
+
+          <button
+            onClick={handleExportPdf}
+            disabled={isExportingPdf}
+            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 transition-all hover:scale-102"
+            title="Download formatted ATS CV as PDF"
+          >
+            <Download className="w-4 h-4" />
+            <span>{isExportingPdf ? 'Exporting...' : 'Export PDF'}</span>
           </button>
 
           <button
             onClick={() => setIsAddingAchievement(true)}
-            className="px-4 py-2.5 rounded-xl bg-[#008751] hover:bg-[#006f43] text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-[#008751]/25 transition-all hover:scale-102"
+            className="px-3.5 py-2 rounded-xl bg-[#008751] hover:bg-[#006f43] text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-[#008751]/25 transition-all hover:scale-102"
           >
             <Plus className="w-4 h-4" />
-            <span>Log Accomplishment</span>
+            <span>Log Milestone</span>
           </button>
         </div>
       </div>
+
+      {/* Export Success Banner */}
+      {exportSuccessMessage && (
+        <div className="p-3.5 rounded-2xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-semibold flex items-center gap-2.5 shadow-lg animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{exportSuccessMessage}</span>
+        </div>
+      )}
 
       {/* Grid: Left Column (Accomplishment Tracker) & Right Column (Live ATS CV Preview) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -399,11 +433,12 @@ EDUCATION & CREDENTIALS
                 </button>
 
                 <button
-                  onClick={handlePrintCv}
-                  className="px-4 py-1.5 rounded-xl bg-[#008751] hover:bg-[#006f43] text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[#008751]/25"
+                  onClick={handleExportPdf}
+                  disabled={isExportingPdf}
+                  className="px-4 py-1.5 rounded-xl bg-[#008751] hover:bg-[#006f43] disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[#008751]/25 transition-all hover:scale-102"
                 >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Export / Print PDF</span>
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{isExportingPdf ? 'Generating...' : 'Export PDF'}</span>
                 </button>
               </div>
             </div>

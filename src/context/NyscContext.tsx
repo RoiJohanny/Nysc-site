@@ -201,7 +201,18 @@ export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const switchPhase = (phase: NyscPhase) => {
-    setProfile(prev => ({ ...prev, current_phase: phase, updated_at: new Date().toISOString() }));
+    setProfile(prev => {
+      const updated = { ...prev, current_phase: phase, updated_at: new Date().toISOString() };
+      try {
+        localStorage.setItem('nysc_profile', JSON.stringify(updated));
+        if (db && updated.id) {
+          setDoc(doc(db, 'profiles', updated.id), updated, { merge: true }).catch(() => {});
+        }
+      } catch {
+        // safe local fallback
+      }
+      return updated;
+    });
     fireConfetti();
   };
 

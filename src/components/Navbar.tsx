@@ -71,6 +71,45 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Quick Header Actions: Portal Link, Sync Indicator, Settings Gear, Profile */}
           <div className="flex items-center gap-1.5 sm:gap-3">
             
+            {/* Interactive NYSC Phase Switcher */}
+            <div className="hidden md:flex items-center rounded-xl bg-slate-950/80 p-0.5 border border-slate-700/80 text-xs">
+              {phases.map((p) => {
+                const isActive = profile.current_phase === p.key;
+                return (
+                  <button
+                    key={p.key}
+                    onClick={() => switchPhase(p.key)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                      isActive
+                        ? 'bg-[#008751] text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                    }`}
+                    title={`Switch to ${p.label} phase`}
+                  >
+                    <span>{p.icon}</span>
+                    <span>{p.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Mobile / Small screen Phase Dropdown */}
+            <div className="md:hidden flex items-center bg-slate-950/80 px-2 py-1 rounded-xl border border-slate-700/80 text-xs">
+              <select
+                value={profile.current_phase}
+                onChange={(e) => switchPhase(e.target.value as NyscPhase)}
+                className="bg-transparent text-emerald-400 font-extrabold focus:outline-none cursor-pointer text-xs"
+                title="Switch Service Phase"
+                aria-label="Switch Service Phase"
+              >
+                {phases.map((p) => (
+                  <option key={p.key} value={p.key} className="bg-slate-900 text-slate-200">
+                    {p.icon} {p.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Quick Portal Link Button opening portal.nysc.org.ng/NYSC1/Default.aspx */}
             <button
               onClick={onOpenPortal}

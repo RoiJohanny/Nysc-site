@@ -24,6 +24,7 @@ import {
   Eye,
   Camera
 } from 'lucide-react';
+import { exportSaedNotesToPdf } from '../lib/pdfExport';
 
 export const SaedJournalView: React.FC = () => {
   const { profile, saedNotes, addSaedNote, deleteSaedNote, fireConfetti } = useNysc();
@@ -142,9 +143,22 @@ export const SaedJournalView: React.FC = () => {
     fireConfetti();
   };
 
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [exportSuccessMessage, setExportSuccessMessage] = useState<string | null>(null);
+
   // PDF Export for Compiled SAED Notes & Gallery
   const handleExportPdf = () => {
-    window.print();
+    setIsExportingPdf(true);
+    try {
+      exportSaedNotesToPdf(profile, filteredNotes, selectedCategory);
+      fireConfetti();
+      setExportSuccessMessage(`Downloaded compiled SAED notes (${filteredNotes.length} entries) as PDF!`);
+      setTimeout(() => setExportSuccessMessage(null), 5000);
+    } catch (err) {
+      console.error('[PDF Export Error]', err);
+    } finally {
+      setIsExportingPdf(false);
+    }
   };
 
   const filteredNotes = saedNotes.filter((note) => {
@@ -155,6 +169,22 @@ export const SaedJournalView: React.FC = () => {
   return (
     <div className="space-y-6">
       
+      {/* Export Success Notification Banner */}
+      {exportSuccessMessage && (
+        <div className="p-3.5 rounded-2xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-semibold flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{exportSuccessMessage}</span>
+          </div>
+          <button
+            onClick={() => setExportSuccessMessage(null)}
+            className="text-emerald-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Top Banner with PDF Export Button */}
       <div className="bg-slate-900/90 p-5 sm:p-6 rounded-3xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl print:hidden">
         <div>
@@ -175,11 +205,12 @@ export const SaedJournalView: React.FC = () => {
         <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
           <button
             onClick={handleExportPdf}
+            disabled={isExportingPdf}
             className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-all hover:scale-102"
             title="Export all compiled SAED notes and photos as PDF"
           >
-            <Download className="w-4 h-4 text-emerald-400" />
-            <span>Export Notes as PDF</span>
+            <Download className={`w-4 h-4 text-emerald-400 ${isExportingPdf ? 'animate-bounce' : ''}`} />
+            <span>{isExportingPdf ? 'Exporting PDF...' : 'Export Notes as PDF'}</span>
           </button>
 
           <button

@@ -39,3 +39,25 @@
   font-family: inherit !important;
   z-index: 10 !important;
 }
+
+/* Ensure Leaflet custom HTML div icons have no unwanted default white box */
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Crisp dark badges for permanent map pin labels */
+.custom-nysc-tooltip {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+  border-radius: 0.5rem !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 4px 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  white-space: nowrap !important;
+}
+.custom-nysc-tooltip::before {
+  border-top-color: #0f172a !important;
+}

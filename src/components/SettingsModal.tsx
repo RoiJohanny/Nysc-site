@@ -196,6 +196,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const totalCachedRecords = expenses.length + clearances.length + cdsLogs.length + vaultDocuments.length;
 
+  const [backupToast, setBackupToast] = useState<string | null>(null);
+
+  const handleExportBackupJson = () => {
+    const backupData = {
+      profile,
+      expenses,
+      clearances,
+      cdsLogs,
+      vaultDocuments,
+      exported_at: new Date().toISOString()
+    };
+    const jsonBlob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(jsonBlob);
+    link.download = `nysc_backup_${(profile.state_code || 'data').replace(/[\/\s]/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    fireConfetti();
+    setBackupToast('Service records backup exported successfully as JSON file!');
+    setTimeout(() => setBackupToast(null), 4000);
+  };
+
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-md">
@@ -964,6 +987,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Sub-Tab 6: Danger Zone & Total Wipe */}
           {activeSubTab === 'danger' && (
             <div className="space-y-4 text-xs">
+              {/* Backup Toast Banner */}
+              {backupToast && (
+                <div className="p-3.5 rounded-2xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs font-semibold flex items-center gap-2.5 shadow-lg animate-in fade-in slide-in-from-top-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{backupToast}</span>
+                </div>
+              )}
+
+              {/* Data Backup Card */}
+              <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="font-bold text-white flex items-center gap-2">
+                    <Database className="w-4 h-4 text-emerald-400" />
+                    <span>Download Local Service Backup (.JSON)</span>
+                  </div>
+                  <div className="text-[11px] text-slate-400">
+                    Export a full snapshot of your {totalCachedRecords} records (expenses, clearances, CDS logs, and vault items).
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleExportBackupJson}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-1.5 shadow-md shadow-emerald-950/40 transition-all hover:scale-102 shrink-0 self-start sm:self-auto"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Export JSON</span>
+                </button>
+              </div>
+
               <div className="p-4 rounded-2xl bg-rose-950/30 border border-rose-800/40 space-y-3">
                 <div className="flex items-center gap-2 text-rose-300 font-bold">
                   <AlertTriangle className="w-4 h-4 text-rose-400" />

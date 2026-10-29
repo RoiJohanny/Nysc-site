@@ -58,7 +58,30 @@ export const EditLocationScheduleModal: React.FC<EditLocationScheduleModalProps>
         setGeoLocating(false);
         setGeoStatusMessage({ type: 'error', text: 'Could not retrieve GPS position. Please check location permissions.' });
       },
-      { timeout: 10000 }
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
+
+  const handleGetCurrentLocationForCds = () => {
+    setGeoStatusMessage(null);
+    if (!navigator.geolocation) {
+      setGeoStatusMessage({ type: 'error', text: 'Geolocation is not supported by your current browser.' });
+      return;
+    }
+    setGeoLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCdsLat(pos.coords.latitude);
+        setCdsLng(pos.coords.longitude);
+        setGeoLocating(false);
+        setGeoStatusMessage({ type: 'success', text: `CDS GPS coordinates captured: ${pos.coords.latitude.toFixed(4)}°N, ${pos.coords.longitude.toFixed(4)}°E` });
+      },
+      (err) => {
+        console.error(err);
+        setGeoLocating(false);
+        setGeoStatusMessage({ type: 'error', text: 'Could not retrieve GPS position. Please check location permissions.' });
+      },
+      { timeout: 10000, enableHighAccuracy: true }
     );
   };
 
@@ -192,8 +215,19 @@ export const EditLocationScheduleModal: React.FC<EditLocationScheduleModalProps>
 
           {/* Section 2: CDS Location (Green Pin) & Schedule */}
           <div className="p-4 rounded-2xl bg-emerald-950/20 border border-[#008751]/40 space-y-3">
-            <div className="font-extrabold text-emerald-300 uppercase tracking-wide">
-              🟢 2. CDS Secretariat Pin & Schedule
+            <div className="flex items-center justify-between">
+              <span className="font-extrabold text-emerald-300 uppercase tracking-wide">
+                🟢 2. CDS Secretariat Pin & Schedule
+              </span>
+              <button
+                type="button"
+                onClick={handleGetCurrentLocationForCds}
+                disabled={geoLocating}
+                className="px-2.5 py-1 rounded-lg bg-[#008751]/30 hover:bg-[#008751]/50 text-emerald-300 text-xs font-semibold flex items-center gap-1 border border-[#008751]/40 transition-all hover:scale-102"
+              >
+                <LocateFixed className="w-3.5 h-3.5" />
+                <span>Use Current GPS</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
