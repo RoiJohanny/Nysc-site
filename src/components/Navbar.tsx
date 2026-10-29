@@ -71,11 +71,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Quick Header Actions: Portal Link, Sync Indicator, Settings Gear, Profile */}
           <div className="flex items-center gap-1.5 sm:gap-3">
             
-            {/* Quick Portal Link Button opening portal.nysc.org.ng */}
+            {/* Quick Portal Link Button opening portal.nysc.org.ng/NYSC1/Default.aspx */}
             <button
               onClick={onOpenPortal}
               className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#008751]/15 hover:bg-[#008751]/25 text-emerald-300 border border-[#008751]/40 text-xs font-bold transition-all hover:scale-102 active:scale-95"
-              title="Open Official NYSC Portal (portal.nysc.org.ng)"
+              title="Open Official NYSC Portal (portal.nysc.org.ng/NYSC1/Default.aspx)"
             >
               <Globe className="w-3.5 h-3.5 text-[#008751]" />
               <span className="hidden xs:inline">NYSC Portal</span>

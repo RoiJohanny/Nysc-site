@@ -1181,7 +1181,7 @@ export const RELOCATION_STEPS_GUIDE: RelocationStep[] = [
     step_number: 2,
     title: 'Submit Application on NYSC Official Portal',
     category: 'Portal Application',
-    description: 'Log in to your dashboard at portal.nysc.org.ng and click "Relocation Request". Select target State and LGA, upload crisp scanned PDF proofs (under 2MB each), and submit before deadline.',
+    description: 'Log in to your dashboard at https://portal.nysc.org.ng/NYSC1/Default.aspx and click "Relocation Request". Select target State and LGA, upload crisp scanned PDF proofs (under 2MB each), and submit before deadline.',
     required_documents: [
       'Portal Login Credentials',
       'High-resolution PDF scans of ground documents',

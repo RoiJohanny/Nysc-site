@@ -28,25 +28,25 @@ export const PortalWebviewModal: React.FC<PortalWebviewModalProps> = ({ isOpen, 
     {
       id: 'login',
       name: 'Corper Portal Login',
-      url: 'https://portal.nysc.org.ng/nysc1/',
+      url: 'https://portal.nysc.org.ng/NYSC1/Default.aspx',
       desc: 'Access your official bio-data, clearance dashboard, and deployment letters'
     },
     {
       id: 'callup',
       name: 'Print Call-Up Letter',
-      url: 'https://portal.nysc.org.ng/nysc1/CallUpLetter.aspx',
+      url: 'https://portal.nysc.org.ng/NYSC1/CallUpLetter.aspx',
       desc: 'Download green/colored official mobilization call-up slip for orientation camp'
     },
     {
       id: 'greencard',
       name: 'Green Card Slip',
-      url: 'https://portal.nysc.org.ng/nysc1/GreenCard.aspx',
+      url: 'https://portal.nysc.org.ng/NYSC1/GreenCard.aspx',
       desc: 'Verify biometric thumbprint status and national registration barcode'
     },
     {
       id: 'relocation',
       name: 'Relocation & Concessional',
-      url: 'https://portal.nysc.org.ng/nysc1/Relocation.aspx',
+      url: 'https://portal.nysc.org.ng/NYSC1/Relocation.aspx',
       desc: 'Check marital or medical ground redeployment approval status'
     },
     {
@@ -75,7 +75,7 @@ export const PortalWebviewModal: React.FC<PortalWebviewModalProps> = ({ isOpen, 
                   Official NYSC Portal
                 </h3>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#008751]/20 text-emerald-300 border border-[#008751]/30">
-                  portal.nysc.org.ng
+                  portal.nysc.org.ng/NYSC1/Default.aspx
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">

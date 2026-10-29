@@ -123,13 +123,26 @@ export const DocumentVaultView: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsUploading(true)}
-          className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-blue-950/40 transition-all hover:scale-105 active:scale-95"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Upload Document (Image/PDF)</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href="https://portal.nysc.org.ng/NYSC1/Default.aspx"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-all hover:scale-102"
+            title="Download official Call-Up Letter or Green Card slip from NYSC portal"
+          >
+            <ExternalLink className="w-4 h-4 text-emerald-400" />
+            <span>NYSC Portal Slips ↗</span>
+          </a>
+
+          <button
+            onClick={() => setIsUploading(true)}
+            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-blue-950/40 transition-all hover:scale-105 active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Upload Document (Image/PDF)</span>
+          </button>
+        </div>
       </div>
 
       {/* Security Status Info Card */}

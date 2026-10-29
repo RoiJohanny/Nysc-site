@@ -115,7 +115,7 @@ export const TermsOfServiceModal: React.FC<ModalProps> = ({ isOpen, onClose }) =
           <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 flex items-start gap-2.5">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>
-              <strong>Peer-to-Peer & Independence Disclaimer:</strong> My NYSC Companion is an independent digital assistant built for Nigerian corps members. It is not an official government branch of the NYSC Directorate Headquarters. Always cross-check formal directives on portal.nysc.org.ng.
+              <strong>Peer-to-Peer & Independence Disclaimer:</strong> My NYSC Companion is an independent digital assistant built for Nigerian corps members. It is not an official government branch of the NYSC Directorate Headquarters. Always cross-check formal directives on <a href="https://portal.nysc.org.ng/NYSC1/Default.aspx" target="_blank" rel="noopener noreferrer" className="underline text-emerald-400 hover:text-emerald-300">portal.nysc.org.ng/NYSC1/Default.aspx</a>.
             </span>
           </div>
 

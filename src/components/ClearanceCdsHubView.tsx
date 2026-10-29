@@ -14,7 +14,8 @@ import {
   Fingerprint,
   Building2,
   Wallet,
-  ChevronDown
+  ChevronDown,
+  ExternalLink
 } from 'lucide-react';
 
 export const ClearanceCdsHubView: React.FC = () => {
@@ -122,11 +123,23 @@ export const ClearanceCdsHubView: React.FC = () => {
         <div className="space-y-6">
           
           {/* Rules / Important Notice */}
-          <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-800/40 text-amber-200 text-xs flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold">Official NYSC Monthly Clearance Guideline:</span> Biometric clearance thumbprinting opens between the 1st and 25th of every month. Missing monthly biometrics without official LGI excuse results in an extension of service or stoppage of ₦77,000 allowance!
+          <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-800/40 text-amber-200 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">Official NYSC Monthly Clearance Guideline:</span> Biometric clearance thumbprinting opens between the 1st and 25th of every month. Missing monthly biometrics without official LGI excuse results in an extension of service or stoppage of ₦77,000 allowance!
+              </div>
             </div>
+            <a
+              href="https://portal.nysc.org.ng/NYSC1/Default.aspx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 font-bold shrink-0 flex items-center gap-1.5 text-[11px] transition-all hover:scale-102"
+              title="Open Official NYSC Portal for Biometrics & Profile Status"
+            >
+              <span>NYSC Portal Login</span>
+              <ExternalLink className="w-3.5 h-3.5 text-amber-300" />
+            </a>
           </div>
 
           {/* Add Future Month Form */}

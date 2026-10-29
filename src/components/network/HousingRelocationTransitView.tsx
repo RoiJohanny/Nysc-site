@@ -443,6 +443,20 @@ export const HousingRelocationTransitView: React.FC<HousingRelocationTransitView
                       <strong className="text-amber-200">Insider Corper Advice:</strong> {step.pro_tip}
                     </span>
                   </div>
+
+                  {step.id === 'reloc-02' && (
+                    <div className="ml-10 pt-1">
+                      <a
+                        href="https://portal.nysc.org.ng/NYSC1/Relocation.aspx"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#008751] hover:bg-[#006f43] text-white font-bold text-xs shadow-md shadow-[#008751]/30 transition-all hover:scale-102"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Open NYSC Relocation Portal (NYSC1/Relocation.aspx) ↗</span>
+                      </a>
+                    </div>
+                  )}
                 </div>
               );
             })}
