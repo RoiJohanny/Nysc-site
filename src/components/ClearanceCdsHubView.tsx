@@ -143,21 +143,21 @@ export const ClearanceCdsHubView: React.FC = () => {
           </div>
 
           {/* Add Future Month Form */}
-          <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <span className="text-slate-400">
               Need to add next service month? (e.g. 2026-11, 2026-12)
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <input
                 type="text"
                 placeholder="YYYY-MM (e.g. 2026-11)"
                 value={newMonthInput}
                 onChange={e => setNewMonthInput(e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white font-mono focus:outline-none focus:border-emerald-500"
+                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white font-mono focus:outline-none focus:border-emerald-500 flex-1 sm:w-40"
               />
               <button
                 onClick={handleAddNewMonth}
-                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg flex items-center gap-1 transition-all"
+                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg flex items-center gap-1 transition-all shrink-0"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Month</span>
@@ -353,18 +353,18 @@ export const ClearanceCdsHubView: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="text-right">
+            <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto">
+              <div className="text-left sm:text-right">
                 <div className="text-xs text-slate-400">Attendance Rate</div>
-                <div className="text-xl font-extrabold text-emerald-400">{attendanceRate}%</div>
+                <div className="text-lg sm:text-xl font-extrabold text-emerald-400">{attendanceRate}%</div>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 <div className="text-xs text-slate-400">Total Dues Paid</div>
-                <div className="text-xl font-extrabold text-white font-mono">₦{totalDuesPaid.toLocaleString()}</div>
+                <div className="text-lg sm:text-xl font-extrabold text-white font-mono">₦{totalDuesPaid.toLocaleString()}</div>
               </div>
               <button
                 onClick={() => setIsAddingCds(true)}
-                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 transition-all hover:scale-105 active:scale-95"
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 transition-all hover:scale-105 active:scale-95 shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 <span>Log Meeting</span>

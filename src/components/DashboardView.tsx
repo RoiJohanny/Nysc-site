@@ -267,9 +267,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
           </div>
 
           {/* Right: Dynamic Circular Progress Countdown Ring Card */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center gap-5 shadow-xl min-w-[280px]">
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-center sm:justify-start gap-4 sm:gap-5 shadow-xl w-full lg:w-auto lg:min-w-[280px]">
             {/* SVG Circular Ring */}
-            <div className="relative w-24 h-24 shrink-0 flex items-center justify-center">
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0 flex items-center justify-center">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                 {/* Background Ring */}
                 <circle
@@ -296,7 +296,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
 
               {/* Center percentage */}
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-lg font-extrabold text-white font-mono leading-none">
+                <span className="text-base sm:text-lg font-extrabold text-white font-mono leading-none">
                   {progressPct}%
                 </span>
                 <span className="text-[9px] text-emerald-400 font-semibold uppercase mt-0.5">
@@ -310,7 +310,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
               <div className="text-xs font-bold text-emerald-300 uppercase tracking-wide">
                 Month {monthServed} of 12
               </div>
-              <div className="text-lg font-black text-amber-400 font-mono tracking-tight leading-snug">
+              <div className="text-base sm:text-lg font-black text-amber-400 font-mono tracking-tight leading-snug">
                 {daysRemaining} Days
               </div>
               <p className="text-[11px] text-slate-400">
@@ -1164,7 +1164,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
                     Category

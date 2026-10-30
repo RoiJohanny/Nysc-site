@@ -12,7 +12,11 @@ import {
   Phone,
   RotateCcw,
   CheckCircle2,
-  Shield
+  Shield,
+  Camera,
+  Upload,
+  Link as LinkIcon,
+  Check
 } from 'lucide-react';
 
 interface ProfileModalProps {
@@ -38,6 +42,36 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
   const [popDate, setPopDate] = useState(profile.pop_date);
   const [confirmReset, setConfirmReset] = useState(false);
 
+  // Avatar state (with or without URL)
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80');
+  const [avatarSourceMode, setAvatarSourceMode] = useState<'upload' | 'url' | 'preset'>('upload');
+  const [avatarFileName, setAvatarFileName] = useState('');
+  const avatarFileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const CORPER_AVATAR_PRESETS = [
+    { label: 'Option 1', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80' },
+    { label: 'Option 2', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80' },
+    { label: 'Option 3', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80' },
+    { label: 'Option 4', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80' },
+    { label: 'Option 5', url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&q=80' }
+  ];
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) return;
+
+    setAvatarFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      if (uploadEvent.target?.result) {
+        setAvatarUrl(uploadEvent.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   if (!isOpen) return null;
 
   const handleSave = (e: React.FormEvent) => {
@@ -55,15 +89,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
       ppa_address: ppaAddress.trim(),
       cds_group: cdsGroup,
       swearing_in_date: swearingIn,
-      pop_date: popDate
+      pop_date: popDate,
+      avatar_url: avatarUrl
     });
     fireConfetti();
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-4 sm:p-6 space-y-5 shadow-2xl max-h-[90dvh] overflow-y-auto">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -96,6 +131,127 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
             <h3 className="font-bold text-slate-300 uppercase tracking-wider text-[11px]">
               1. Personal & Identification
             </h3>
+
+            {/* Profile Photo (With or Without URL) */}
+            <div className="p-3 sm:p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-slate-200 font-bold flex items-center gap-1.5 text-xs">
+                  <Camera className="w-4 h-4 text-emerald-400" />
+                  <span>Profile Photo (With or Without URL)</span>
+                </label>
+                <span className="text-[10px] text-slate-400">Live Header & Directory Sync</span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                {/* Avatar Live Preview */}
+                <div className="relative shrink-0">
+                  <img
+                    src={avatarUrl}
+                    alt="Profile Avatar"
+                    className="w-16 h-16 rounded-2xl object-cover ring-2 ring-emerald-500/60 shadow-lg shadow-emerald-950/30"
+                  />
+                  <div className="absolute -bottom-1 -right-1 p-1 bg-emerald-600 rounded-lg text-white">
+                    <Check className="w-3 h-3" />
+                  </div>
+                </div>
+
+                {/* Mode Switcher & Inputs */}
+                <div className="flex-1 w-full space-y-2">
+                  <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => setAvatarSourceMode('upload')}
+                      className={`py-1 rounded-lg flex items-center justify-center gap-1 transition-all ${
+                        avatarSourceMode === 'upload'
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <Upload className="w-3 h-3" />
+                      <span>Device Photo</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAvatarSourceMode('url')}
+                      className={`py-1 rounded-lg flex items-center justify-center gap-1 transition-all ${
+                        avatarSourceMode === 'url'
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <LinkIcon className="w-3 h-3" />
+                      <span>Paste URL</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAvatarSourceMode('preset')}
+                      className={`py-1 rounded-lg flex items-center justify-center gap-1 transition-all ${
+                        avatarSourceMode === 'preset'
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <User className="w-3 h-3" />
+                      <span>Presets</span>
+                    </button>
+                  </div>
+
+                  {/* Upload without URL */}
+                  {avatarSourceMode === 'upload' && (
+                    <div>
+                      <input
+                        ref={avatarFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarUpload}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => avatarFileInputRef.current?.click()}
+                        className="w-full py-2 px-3 rounded-xl border border-dashed border-slate-700 hover:border-emerald-500 bg-slate-900 text-slate-300 hover:text-white text-xs flex items-center justify-center gap-2 transition-all"
+                      >
+                        <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="truncate">{avatarFileName ? avatarFileName : 'Select photo from gallery or camera (No URL required)'}</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Paste URL */}
+                  {avatarSourceMode === 'url' && (
+                    <div>
+                      <input
+                        type="url"
+                        placeholder="https://images.unsplash.com/..."
+                        value={avatarUrl.startsWith('data:') ? '' : avatarUrl}
+                        onChange={(e) => setAvatarUrl(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  )}
+
+                  {/* Preset Avatars */}
+                  {avatarSourceMode === 'preset' && (
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                      {CORPER_AVATAR_PRESETS.map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setAvatarUrl(preset.url)}
+                          className={`relative rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
+                            avatarUrl === preset.url
+                              ? 'border-emerald-500 ring-2 ring-emerald-500/40'
+                              : 'border-slate-700 hover:border-slate-500'
+                          }`}
+                        >
+                          <img src={preset.url} alt={preset.label} className="w-9 h-9 object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>

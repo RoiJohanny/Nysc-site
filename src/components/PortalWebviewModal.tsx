@@ -74,11 +74,11 @@ export const PortalWebviewModal: React.FC<PortalWebviewModalProps> = ({ isOpen, 
                 <h3 className="text-sm font-bold text-white">
                   Official NYSC Portal
                 </h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#008751]/20 text-emerald-300 border border-[#008751]/30">
+                <span className="hidden md:inline px-2 py-0.5 rounded text-[10px] font-mono bg-[#008751]/20 text-emerald-300 border border-[#008751]/30 truncate max-w-[200px]">
                   portal.nysc.org.ng/NYSC1/Default.aspx
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-400 hidden sm:block">
                 Direct secure connection to National Youth Service Corps headquarters servers
               </p>
             </div>

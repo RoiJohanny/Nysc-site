@@ -554,7 +554,7 @@ export const SaedJournalView: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <label className="text-slate-300 font-semibold flex items-center gap-1.5">
                     <Camera className="w-4 h-4 text-emerald-400" />
-                    <span>Attach Workshop Photos ({uploadedPhotos.length})</span>
+                    <span>Attach Workshop Photos (With or Without URL) ({uploadedPhotos.length})</span>
                   </label>
 
                   <button
@@ -563,7 +563,7 @@ export const SaedJournalView: React.FC = () => {
                     className="px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 transition-all"
                   >
                     <Upload className="w-3.5 h-3.5" />
-                    <span>Upload Local Photos</span>
+                    <span>Upload Device Photos (No URL)</span>
                   </button>
                 </div>
 

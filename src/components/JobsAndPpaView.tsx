@@ -155,7 +155,7 @@ export const JobsAndPpaView: React.FC = () => {
       </div>
 
       {/* Job Listings Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredJobs.length === 0 ? (
           <div className="col-span-full text-center py-12 text-xs text-slate-500 bg-slate-900/60 rounded-3xl border border-slate-800 space-y-3">
             <Briefcase className="w-10 h-10 text-slate-600 mx-auto" />
@@ -341,7 +341,7 @@ export const JobsAndPpaView: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
                     Company / Organization
@@ -371,7 +371,7 @@ export const JobsAndPpaView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
                     Role Type

@@ -199,14 +199,14 @@ export const CorperDirectoryView: React.FC = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredMembers.map((member) => {
             const isUser = member.full_name === profile.full_name;
 
             return (
               <div
                 key={member.id}
-                className="bg-slate-900/90 rounded-2xl border border-slate-800 hover:border-[#008751]/50 p-5 space-y-4 shadow-xl transition-all flex flex-col justify-between group"
+                className="bg-slate-900/90 rounded-2xl border border-slate-800 hover:border-[#008751]/50 p-4 sm:p-5 space-y-4 shadow-xl transition-all flex flex-col justify-between group"
               >
                 {/* Header: Avatar, Name, State Code */}
                 <div className="space-y-3">
@@ -214,7 +214,7 @@ export const CorperDirectoryView: React.FC = () => {
                     <img
                       src={member.avatar}
                       alt={member.full_name}
-                      className="w-13 h-13 rounded-2xl object-cover border-2 border-slate-700 group-hover:border-[#008751] transition-colors shrink-0"
+                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl object-cover border-2 border-slate-700 group-hover:border-[#008751] transition-colors shrink-0"
                     />
 
                     <div className="flex-1 min-w-0">

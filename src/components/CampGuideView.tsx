@@ -82,7 +82,7 @@ export const CampGuideView: React.FC = () => {
         </div>
 
         {/* Tab Toggle */}
-        <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <div className="flex overflow-x-auto no-scrollbar max-w-full bg-slate-950 p-1 rounded-xl border border-slate-800 shrink-0">
           <button
             onClick={() => setActiveTab('checklist')}
             className={`px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
@@ -183,7 +183,7 @@ export const CampGuideView: React.FC = () => {
           </div>
 
           {/* Items List */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
             {filteredItems.map(item => (
               <div
                 key={item.id}

@@ -845,13 +845,13 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
       )}
 
       {/* Map Canvas with Floating Controls */}
-      <div className="relative w-full h-[380px] sm:h-[440px] rounded-2xl overflow-hidden border border-slate-800 shadow-inner bg-slate-950">
+      <div className="relative w-full h-[340px] sm:h-[420px] lg:h-[480px] rounded-2xl overflow-hidden border border-slate-800 shadow-inner bg-slate-950">
         
         {/* Leaflet Map Container */}
         <div ref={mapContainerRef} className="w-full h-full z-10" />
 
         {/* Floating Quick Action Overlay */}
-        <div className="absolute top-3 left-3 z-20 flex flex-wrap gap-1.5">
+        <div className="absolute top-2.5 sm:top-3 left-2.5 sm:left-3 z-20 flex flex-wrap gap-1 sm:gap-1.5 max-w-[calc(100%-1.25rem)]">
           <button
             onClick={handleFocusPpa}
             className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 backdrop-blur-md shadow-md transition-all ${
@@ -903,8 +903,8 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
         </div>
 
         {/* Floating Direction Info & External App Link */}
-        <div className="absolute bottom-3 right-3 z-20 flex items-center gap-2">
-          <div className="px-3 py-1.5 rounded-xl bg-slate-900/95 border border-slate-700 text-xs font-mono font-bold text-white shadow-xl backdrop-blur-md flex items-center gap-2">
+        <div className="absolute bottom-2.5 sm:bottom-3 right-2.5 sm:right-3 left-2.5 sm:left-auto z-20 flex flex-wrap sm:flex-nowrap items-center justify-end gap-1.5 sm:gap-2 pointer-events-none">
+          <div className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/95 border border-slate-700 text-xs font-mono font-bold text-white shadow-xl backdrop-blur-md flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
             <span className="text-[#008751]">Calculated:</span>
             <span className="text-emerald-400">{routeDistanceKm} km</span>
             <span className="text-slate-400 text-[10px]">({routeDurationMins}m)</span>
@@ -914,7 +914,7 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
             href={directionsAppUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1.5 rounded-xl bg-blue-600/90 hover:bg-blue-600 text-white text-xs font-bold border border-blue-400/40 shadow-xl backdrop-blur-md flex items-center gap-1.5 transition-all"
+            className="px-3 py-1.5 rounded-xl bg-blue-600/90 hover:bg-blue-600 text-white text-xs font-bold border border-blue-400/40 shadow-xl backdrop-blur-md flex items-center gap-1.5 transition-all pointer-events-auto"
             title="Open turn-by-turn directions in external navigation app"
           >
             <span>Live Navigation</span>
@@ -995,14 +995,14 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
           </div>
 
           {/* Quick "Use Current GPS for CDS" button inside CDS card */}
-          <div className="pt-2 border-t border-slate-700/60 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
+          <div className="pt-2 border-t border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
             <span className="text-[11px] text-slate-400">
               At your CDS meeting venue right now?
             </span>
             <button
               onClick={handleUseCurrentGpsForCds}
               disabled={isUpdatingCdsGps}
-              className="px-3 py-1.5 rounded-xl bg-[#008751] hover:bg-[#006f43] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md hover:scale-102"
+              className="px-3 py-1.5 rounded-xl bg-[#008751] hover:bg-[#006f43] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md hover:scale-102 shrink-0 w-full sm:w-auto"
               title="Save your current GPS coordinates as your CDS meeting venue"
             >
               <LocateFixed className="w-3.5 h-3.5" />

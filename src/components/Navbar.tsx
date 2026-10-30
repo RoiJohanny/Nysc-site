@@ -45,34 +45,24 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-slate-900/95 dark:bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-800 transition-colors">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-18 gap-2 sm:gap-4">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-18 gap-1.5 sm:gap-4 py-1">
           
-          {/* Brand Logo & Name with NYSC Green (#008751) */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-[#005a36] to-[#008751] flex items-center justify-center shadow-lg shadow-[#008751]/25 text-white font-extrabold text-base sm:text-lg tracking-wider border border-[#008751]/40 shrink-0">
+          {/* Brand Logo with Name Underneath */}
+          <div className="flex flex-col items-center justify-center shrink-0 cursor-default select-none">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-[#005a36] to-[#008751] flex items-center justify-center shadow-md shadow-[#008751]/25 text-white font-black text-xs sm:text-sm tracking-wider border border-[#008751]/40">
               NYSC
             </div>
-            <div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="font-extrabold text-sm sm:text-lg text-white tracking-tight">
-                  My NYSC Companion
-                </span>
-                <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-[#008751]/15 text-[#008751] border border-[#008751]/30">
-                  {profile.batch_stream}
-                </span>
-              </div>
-              <p className="text-[10px] sm:text-[11px] text-slate-400 hidden sm:block">
-                Service & Humility • Progressive Web App
-              </p>
-            </div>
+            <span className="font-black text-[9px] sm:text-[10px] md:text-xs text-white tracking-tight mt-0.5 leading-none whitespace-nowrap">
+              NYSC Companion
+            </span>
           </div>
 
           {/* Quick Header Actions: Portal Link, Sync Indicator, Settings Gear, Profile */}
-          <div className="flex items-center gap-1.5 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2.5 shrink-0">
             
-            {/* Interactive NYSC Phase Switcher */}
-            <div className="hidden md:flex items-center rounded-xl bg-slate-950/80 p-0.5 border border-slate-700/80 text-xs">
+            {/* Interactive NYSC Phase Switcher - Desktop & Tablet */}
+            <div className="hidden lg:flex items-center rounded-xl bg-slate-950/80 p-0.5 border border-slate-700/80 text-xs">
               {phases.map((p) => {
                 const isActive = profile.current_phase === p.key;
                 return (
@@ -93,12 +83,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               })}
             </div>
 
-            {/* Mobile / Small screen Phase Dropdown */}
-            <div className="md:hidden flex items-center bg-slate-950/80 px-2 py-1 rounded-xl border border-slate-700/80 text-xs">
+            {/* Mobile / Tablet Phase Dropdown */}
+            <div className="lg:hidden flex items-center bg-slate-950/80 px-1.5 sm:px-2 py-1 rounded-xl border border-slate-700/80 text-xs shrink-0">
               <select
                 value={profile.current_phase}
                 onChange={(e) => switchPhase(e.target.value as NyscPhase)}
-                className="bg-transparent text-emerald-400 font-extrabold focus:outline-none cursor-pointer text-xs"
+                className="bg-transparent text-emerald-400 font-extrabold focus:outline-none cursor-pointer text-xs max-w-[62px] sm:max-w-none"
                 title="Switch Service Phase"
                 aria-label="Switch Service Phase"
               >
@@ -113,16 +103,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Quick Portal Link Button opening portal.nysc.org.ng/NYSC1/Default.aspx */}
             <button
               onClick={onOpenPortal}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#008751]/15 hover:bg-[#008751]/25 text-emerald-300 border border-[#008751]/40 text-xs font-bold transition-all hover:scale-102 active:scale-95"
+              className="flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-[#008751]/15 hover:bg-[#008751]/25 text-emerald-300 border border-[#008751]/40 text-xs font-bold transition-all hover:scale-102 active:scale-95 shrink-0"
               title="Open Official NYSC Portal (portal.nysc.org.ng/NYSC1/Default.aspx)"
             >
               <Globe className="w-3.5 h-3.5 text-[#008751]" />
-              <span className="hidden xs:inline">NYSC Portal</span>
+              <span className="hidden sm:inline">Portal</span>
             </button>
 
             {/* Sync Indicator (🟢 Online / 🔴 Offline Local Storage Status) */}
             <div
-              className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border transition-all ${
+              className={`flex items-center gap-1 px-1.5 sm:px-2 py-1.5 rounded-xl text-[11px] font-semibold border transition-all shrink-0 ${
                 isOnline
                   ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
                   : 'bg-red-950/40 border-red-500/30 text-red-300'
@@ -134,17 +124,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               }
             >
               <span
-                className={`w-2 h-2 rounded-full ${
+                className={`w-2 h-2 rounded-full shrink-0 ${
                   isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'
                 }`}
               />
-              <span className="hidden sm:inline font-mono">
+              <span className="hidden sm:inline font-mono text-[10px]">
                 {isOnline ? 'Online' : 'Offline'}
               </span>
             </div>
 
-            {/* Alawee Countdown Pill */}
-            <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+            {/* Alawee Countdown Pill (desktop wide) */}
+            <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold shrink-0">
               <Coins className="w-3.5 h-3.5 text-amber-400" />
               <span>
                 ₦{(financials.federal_alawee || 77000).toLocaleString()}{' '}
@@ -157,18 +147,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Quick SOS Trigger */}
             <button
               onClick={onOpenSos}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/40 rounded-xl text-xs font-bold transition-all hover:scale-105 active:scale-95"
+              className="flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/40 rounded-xl text-xs font-bold transition-all hover:scale-105 active:scale-95 shrink-0"
               title="Emergency SOS & Hotlines"
             >
               <ShieldAlert className="w-3.5 h-3.5 text-red-400 animate-bounce" />
-              <span className="hidden md:inline">SOS</span>
+              <span className="hidden sm:inline">SOS</span>
             </button>
 
             {/* Creator Admin Control Panel button (/admin) */}
             {profile.is_admin && onOpenAdmin && (
               <button
                 onClick={onOpenAdmin}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                className={`flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
                   isAdminView
                     ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30'
                     : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 hover:scale-102'
@@ -183,7 +173,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Settings Gear Icon (⚙️) triggering Settings Modal */}
             <button
               onClick={onOpenSettings}
-              className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 transition-all hover:rotate-45"
+              className="p-1.5 sm:p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 transition-all hover:rotate-45 shrink-0"
               title="Settings & PWA Preferences"
               aria-label="Settings"
             >
@@ -193,13 +183,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Profile Avatar Trigger */}
             <button
               onClick={onOpenProfile}
-              className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 transition-all text-left"
+              className="flex items-center gap-1.5 p-1 sm:pl-1.5 sm:pr-2.5 sm:py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 transition-all text-left shrink-0"
               title="View & Edit Profile"
+              aria-label="Profile"
             >
               <img
                 src={profile.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'}
                 alt={profile.full_name}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover ring-2 ring-[#008751]/50"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover ring-2 ring-[#008751]/50 shrink-0"
               />
               <div className="hidden lg:block">
                 <div className="text-xs font-bold text-slate-200 truncate max-w-[100px]">

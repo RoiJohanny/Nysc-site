@@ -22,8 +22,8 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onChangeT
   ];
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 dark:bg-[#0b0f19]/95 backdrop-blur-lg border-t border-slate-800 shadow-[0_-8px_30px_rgba(0,0,0,0.5)]">
-      <div className="max-w-md md:max-w-lg lg:max-w-2xl mx-auto px-4 py-2 flex items-center justify-around">
+    <nav className="fixed bottom-0 inset-x-0 sm:bottom-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-40 bg-slate-900/95 dark:bg-[#0b0f19]/95 backdrop-blur-lg border-t sm:border border-slate-800 sm:rounded-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.5)] sm:shadow-2xl">
+      <div className="w-full sm:w-[460px] md:w-[520px] px-3 sm:px-4 py-2 flex items-center justify-around">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -35,7 +35,7 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onChangeT
                 onChangeTab(tab.id);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className={`relative flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all duration-200 group ${
+              className={`relative flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all duration-200 group flex-1 max-w-[100px] ${
                 isActive
                   ? 'text-white'
                   : 'text-slate-400 hover:text-slate-200'
@@ -61,7 +61,7 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onChangeT
                   isActive ? 'text-[#008751] dark:text-emerald-400 font-extrabold' : 'text-slate-400'
                 }`}
               >
-                <span className="text-[10px] hidden xs:inline">{tab.emoji}</span>
+                <span className="text-[10px] hidden sm:inline">{tab.emoji}</span>
                 <span>{tab.label}</span>
               </span>
             </button>

@@ -106,7 +106,7 @@ export const EmergencyDirectoryView: React.FC = () => {
         </div>
 
         {/* Tab Toggle */}
-        <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <div className="flex overflow-x-auto no-scrollbar max-w-full bg-slate-950 p-1 rounded-xl border border-slate-800 shrink-0">
           <button
             onClick={() => setActiveTab('emergency')}
             className={`px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
@@ -168,7 +168,7 @@ export const EmergencyDirectoryView: React.FC = () => {
           </div>
 
           {/* Contacts Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {emergencyContacts.map(contact => (
               <div
                 key={contact.id}

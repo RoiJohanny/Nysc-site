@@ -84,7 +84,7 @@ export const HubShellView: React.FC<HubShellViewProps> = ({ initialSubModule = '
         </div>
 
         {/* Quick Nav Segmented Switcher */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 sm:gap-2 mt-5 pt-4 border-t border-slate-800/80">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2 mt-5 pt-4 border-t border-slate-800/80">
           {subModules.map(module => {
             const Icon = module.icon;
             const isActive = activeSubModule === module.id;

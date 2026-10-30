@@ -19,7 +19,10 @@ import {
   X,
   Eye,
   Camera,
-  PackageCheck
+  PackageCheck,
+  Upload,
+  ImageIcon,
+  Link as LinkIcon
 } from 'lucide-react';
 
 export const MarketplaceView: React.FC = () => {
@@ -42,6 +45,53 @@ export const MarketplaceView: React.FC = () => {
   const [lga, setLga] = useState(profile.lga || 'Ikeja');
   const [sellerPhone, setSellerPhone] = useState(profile.phone || '+234 814 592 0184');
   const [imageUrl, setImageUrl] = useState('');
+  const [imageSourceMode, setImageSourceMode] = useState<'upload' | 'url' | 'preset'>('upload');
+  const [imageFileName, setImageFileName] = useState('');
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const GEAR_IMAGE_PRESETS = [
+    { label: '🛏️ Mattress', url: 'https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?auto=format&fit=crop&w=600&q=80' },
+    { label: '💨 Fan', url: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?auto=format&fit=crop&w=600&q=80' },
+    { label: '⚡ Mini Gen', url: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=600&q=80' },
+    { label: '👢 Boots', url: 'https://images.unsplash.com/photo-1520639888713-7851133b1ed0?auto=format&fit=crop&w=600&q=80' },
+    { label: '👟 Sneakers', url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80' },
+    { label: '🍳 Kitchen Pot', url: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=600&q=80' }
+  ];
+
+  const CATEGORY_DEFAULT_IMAGES: Record<string, string> = {
+    'Mattresses & Bedding': 'https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?auto=format&fit=crop&w=600&q=80',
+    'Electronics & Appliances': 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?auto=format&fit=crop&w=600&q=80',
+    'Camp Whites & Uniforms': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80',
+    'Kitchen & Cooking': 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=600&q=80',
+    'Books & Stationery': 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80',
+    'Other': 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80'
+  };
+
+  const handleLocalImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      return;
+    }
+
+    setImageFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (loadEvent) => {
+      if (loadEvent.target?.result) {
+        setImageUrl(loadEvent.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClearImage = () => {
+    setImageUrl('');
+    setImageFileName('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const categories: MarketplaceItem['category'][] = [
     'Mattresses & Bedding',
@@ -66,6 +116,8 @@ export const MarketplaceView: React.FC = () => {
     e.preventDefault();
     if (!title.trim() || !price || Number(price) <= 0) return;
 
+    const finalImage = imageUrl.trim() || CATEGORY_DEFAULT_IMAGES[category] || 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80';
+
     addMarketplaceItem({
       seller_name: profile.full_name,
       title: title.trim(),
@@ -76,9 +128,7 @@ export const MarketplaceView: React.FC = () => {
       state,
       lga,
       seller_phone: sellerPhone.trim(),
-      images: imageUrl.trim()
-        ? [imageUrl.trim()]
-        : ['https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80'],
+      images: [finalImage],
       is_sold: false
     });
 
@@ -86,6 +136,7 @@ export const MarketplaceView: React.FC = () => {
     setDesc('');
     setPrice('');
     setImageUrl('');
+    setImageFileName('');
     setIsPosting(false);
     fireConfetti();
   };
@@ -246,7 +297,7 @@ export const MarketplaceView: React.FC = () => {
       </div>
 
       {/* Items Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {filteredItems.length === 0 ? (
           <div className="col-span-full text-center py-12 text-xs text-slate-500 bg-slate-900/60 rounded-3xl border border-slate-800 space-y-3">
             <ShoppingBag className="w-10 h-10 text-slate-600 mx-auto" />
@@ -487,7 +538,7 @@ export const MarketplaceView: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
                     Price (₦)
@@ -517,7 +568,7 @@ export const MarketplaceView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
                     Category
@@ -562,17 +613,157 @@ export const MarketplaceView: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-slate-300 font-semibold mb-1">
-                  Photo URL (Optional)
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/..."
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
-                />
+              {/* Add Item Photo: With URL, Without URL (Device/Camera upload), or Preset */}
+              <div className="space-y-2 p-3 sm:p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+                <div className="flex items-center justify-between">
+                  <label className="text-slate-300 font-semibold flex items-center gap-1.5 text-xs">
+                    <Camera className="w-4 h-4 text-amber-400" />
+                    <span>Item Photo (With or Without URL)</span>
+                  </label>
+                  {imageUrl && (
+                    <button
+                      type="button"
+                      onClick={handleClearImage}
+                      className="text-[11px] text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold"
+                    >
+                      <X className="w-3 h-3" />
+                      <span>Remove</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Mode Selector Tabs: Local File / Camera vs Web Link vs Presets */}
+                <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setImageSourceMode('upload')}
+                    className={`py-1.5 rounded-lg flex items-center justify-center gap-1 transition-all ${
+                      imageSourceMode === 'upload'
+                        ? 'bg-amber-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <Upload className="w-3 h-3" />
+                    <span className="truncate">Device Photo</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageSourceMode('url')}
+                    className={`py-1.5 rounded-lg flex items-center justify-center gap-1 transition-all ${
+                      imageSourceMode === 'url'
+                        ? 'bg-amber-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <LinkIcon className="w-3 h-3" />
+                    <span className="truncate">Paste URL</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageSourceMode('preset')}
+                    className={`py-1.5 rounded-lg flex items-center justify-center gap-1 transition-all ${
+                      imageSourceMode === 'preset'
+                        ? 'bg-amber-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <ImageIcon className="w-3 h-3" />
+                    <span className="truncate">Gear Presets</span>
+                  </button>
+                </div>
+
+                {/* Mode 1: Device / Camera Upload (Without URL) */}
+                {imageSourceMode === 'upload' && (
+                  <div className="space-y-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLocalImageUpload}
+                      className="hidden"
+                    />
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="border-2 border-dashed border-slate-700 hover:border-amber-500 rounded-xl p-3 text-center cursor-pointer transition-colors bg-slate-900/60 hover:bg-slate-900"
+                    >
+                      <Upload className="w-5 h-5 text-amber-400 mx-auto mb-1" />
+                      <div className="text-xs font-semibold text-slate-200">
+                        {imageFileName ? imageFileName : 'Click to select photo from device or take camera shot'}
+                      </div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">
+                        No URL required • Supports JPG, PNG, WEBP
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mode 2: Web Link / URL */}
+                {imageSourceMode === 'url' && (
+                  <div className="space-y-1">
+                    <input
+                      type="url"
+                      placeholder="https://images.unsplash.com/photo-..."
+                      value={imageUrl.startsWith('data:') ? '' : imageUrl}
+                      onChange={(e) => {
+                        setImageUrl(e.target.value);
+                        setImageFileName('');
+                      }}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                    />
+                    <div className="text-[10px] text-slate-400">
+                      Paste direct image link from Unsplash, Cloudinary, or web
+                    </div>
+                  </div>
+                )}
+
+                {/* Mode 3: Quick Presets */}
+                {imageSourceMode === 'preset' && (
+                  <div className="space-y-1.5">
+                    <div className="text-[10px] text-slate-400">
+                      Select typical camp gear photo:
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {GEAR_IMAGE_PRESETS.map((preset) => (
+                        <button
+                          key={preset.label}
+                          type="button"
+                          onClick={() => {
+                            setImageUrl(preset.url);
+                            setImageFileName(preset.label);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all ${
+                            imageUrl === preset.url
+                              ? 'bg-amber-600 text-white border-amber-500'
+                              : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-500'
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Live Preview Thumbnail if an image is loaded */}
+                {imageUrl && (
+                  <div className="relative rounded-xl overflow-hidden border border-amber-500/40 bg-slate-900 h-28 sm:h-32 mt-2">
+                    <img
+                      src={imageUrl}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-950/90 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                      <Check className="w-3 h-3 text-emerald-400" />
+                      <span>{imageUrl.startsWith('data:') ? 'Device Photo Ready' : 'URL Image Ready'}</span>
+                    </div>
+                  </div>
+                )}
+
+                {!imageUrl && (
+                  <div className="text-[10px] text-slate-400 italic">
+                    Tip: You can also post without an image. A clean default photo will be assigned automatically.
+                  </div>
+                )}
               </div>
 
               <div>

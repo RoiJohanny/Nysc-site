@@ -295,9 +295,28 @@ export const DocumentVaultView: React.FC = () => {
                     {docName ? docName : 'Click or Drag & Drop File'}
                   </div>
                   <div className="text-[10px] text-slate-400 mt-0.5">
-                    Supports JPG, PNG, WEBP, and PDF documents
+                    Supports JPG, PNG, WEBP, and PDF documents (No URL required)
                   </div>
                 </div>
+              </div>
+
+              {/* Optional Web URL (With URL) */}
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">
+                  Or Paste Document Web URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://... or cloud storage link"
+                  value={docUrl.startsWith('data:') ? '' : docUrl}
+                  onChange={e => {
+                    setDocUrl(e.target.value);
+                    if (!docName && e.target.value) {
+                      setDocName('NYSC_Verified_Document.pdf');
+                    }
+                  }}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-xs"
+                />
               </div>
 
               <div>

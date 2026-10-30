@@ -319,7 +319,7 @@ EDUCATION & CREDENTIALS
         {/* Right Column: Auto-Generated CV Draft (7 Columns) */}
         <div className="lg:col-span-7 space-y-4">
           
-          <div className="bg-slate-900/95 rounded-3xl border border-slate-800 p-6 sm:p-8 space-y-6 shadow-2xl print:bg-white print:text-slate-900 print:border-none print:p-0 print:shadow-none">
+          <div className="bg-slate-900/95 rounded-3xl border border-slate-800 p-4 sm:p-6 md:p-8 space-y-6 shadow-2xl print:bg-white print:text-slate-900 print:border-none print:p-0 print:shadow-none">
             
             {/* Header: Candidate Info */}
             <div className="border-b-2 border-slate-700 print:border-slate-800 pb-4 space-y-1 text-center sm:text-left">
@@ -500,7 +500,7 @@ EDUCATION & CREDENTIALS
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
                     Skills Demonstrated (comma-separated)

@@ -238,7 +238,7 @@ export const HousingRelocationTransitView: React.FC<HousingRelocationTransitView
           </div>
 
           {/* Lodges Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredLodges.map((lodge) => (
               <div
                 key={lodge.id}
@@ -518,7 +518,7 @@ export const HousingRelocationTransitView: React.FC<HousingRelocationTransitView
           </div>
 
           {/* Routes Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTransitRoutes.map((route) => (
               <div
                 key={route.id}
@@ -591,7 +591,7 @@ export const HousingRelocationTransitView: React.FC<HousingRelocationTransitView
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-slate-300 font-semibold mb-1">
                         From Stop
@@ -621,7 +621,7 @@ export const HousingRelocationTransitView: React.FC<HousingRelocationTransitView
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-slate-300 font-semibold mb-1">
                         Transport Type
