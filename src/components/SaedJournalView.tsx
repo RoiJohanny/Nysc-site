@@ -25,6 +25,8 @@ import {
   Camera
 } from 'lucide-react';
 import { exportSaedNotesToPdf } from '../lib/pdfExport';
+import { sanitizePlainText, sanitizeUrl } from '../lib/sanitize';
+import { MAX_FILE_SIZE_BYTES } from '../lib/schemas';
 
 export const SaedJournalView: React.FC = () => {
   const { profile, saedNotes, addSaedNote, deleteSaedNote, fireConfetti } = useNysc();
@@ -54,12 +56,24 @@ export const SaedJournalView: React.FC = () => {
     { id: 'Agro-Allied', label: 'Agro-Allied & Food', short: 'Agro' }
   ];
 
-  // Handle local multi-photo file selection
+  // Handle local multi-photo file selection with strict AppSec verification
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
     Array.from(files).forEach((file) => {
+      if (!allowedTypes.includes(file.type)) {
+        alert(`File "${file.name}" rejected: Only JPG, PNG, and WEBP formats allowed.`);
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        alert(`File "${file.name}" rejected: Size (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds 5MB limit.`);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (uploadEvent) => {
         if (uploadEvent.target?.result) {
@@ -67,7 +81,7 @@ export const SaedJournalView: React.FC = () => {
             ...prev,
             {
               url: uploadEvent.target?.result as string,
-              caption: file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ')
+              caption: sanitizePlainText(file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '))
             }
           ]);
         }
@@ -78,11 +92,16 @@ export const SaedJournalView: React.FC = () => {
 
   const handleAddPhotoByUrl = () => {
     if (!photoUrlInput.trim()) return;
+    const validatedUrl = sanitizeUrl(photoUrlInput.trim());
+    if (validatedUrl === '#') {
+      alert('Security Policy: Unsafe image URL blocked. Must start with https://');
+      return;
+    }
     setUploadedPhotos((prev) => [
       ...prev,
       {
-        url: photoUrlInput.trim(),
-        caption: photoCaptionInput.trim() || 'SAED Practical Session'
+        url: validatedUrl,
+        caption: sanitizePlainText(photoCaptionInput.trim()) || 'SAED Practical Session'
       }
     ]);
     setPhotoUrlInput('');
@@ -95,7 +114,7 @@ export const SaedJournalView: React.FC = () => {
 
   const handleAddTakeaway = () => {
     if (!keyTakeawayInput.trim()) return;
-    setKeyTakeaways((prev) => [...prev, keyTakeawayInput.trim()]);
+    setKeyTakeaways((prev) => [...prev, sanitizePlainText(keyTakeawayInput.trim())]);
     setKeyTakeawayInput('');
   };
 
@@ -116,21 +135,23 @@ export const SaedJournalView: React.FC = () => {
 
   const handleSaveNote = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!noteTitle.trim()) return;
+    const cleanTitle = sanitizePlainText(noteTitle.trim());
+    const cleanContent = sanitizePlainText(noteContent.trim());
+    if (!cleanTitle) return;
 
     const formattedImages: SaedNoteImage[] = uploadedPhotos.map((p, idx) => ({
       id: `img-${Date.now()}-${idx}`,
       note_id: '',
       image_url: p.url,
-      caption: p.caption,
+      caption: sanitizePlainText(p.caption),
       uploaded_at: new Date().toISOString()
     }));
 
     addSaedNote({
       skill_category: noteCategory,
-      title: noteTitle.trim(),
-      content: noteContent.trim(),
-      key_takeaways: keyTakeaways,
+      title: cleanTitle,
+      content: cleanContent,
+      key_takeaways: keyTakeaways.map(t => sanitizePlainText(t)),
       images: formattedImages
     });
 

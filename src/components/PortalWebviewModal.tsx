@@ -10,8 +10,10 @@ import {
   FileText,
   UserCheck,
   Plane,
-  AlertCircle
+  AlertCircle,
+  ShieldAlert
 } from 'lucide-react';
+import { isAllowedNyscOrigin, sanitizeUrl } from '../lib/sanitize';
 
 interface PortalWebviewModalProps {
   isOpen: boolean;
@@ -57,7 +59,12 @@ export const PortalWebviewModal: React.FC<PortalWebviewModalProps> = ({ isOpen, 
     }
   ];
 
-  const currentSection = portalLinks.find(p => p.id === activePortalSection) || portalLinks[0];
+  const candidateSection = portalLinks.find(p => p.id === activePortalSection) || portalLinks[0];
+  
+  // AppSec Fortification: Strictly validate origin against allowed NYSC federal domains
+  const isOriginSafe = isAllowedNyscOrigin(candidateSection.url);
+  const validatedUrl = isOriginSafe ? sanitizeUrl(candidateSection.url) : 'https://portal.nysc.org.ng/NYSC1/Default.aspx';
+  const currentSection = { ...candidateSection, url: validatedUrl };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md">
@@ -133,31 +140,47 @@ export const PortalWebviewModal: React.FC<PortalWebviewModalProps> = ({ isOpen, 
         {/* Webview Content / Frame */}
         <div className="flex-1 relative bg-slate-950 flex flex-col">
           
-          {/* Security Alert Header for Nigeria Portal */}
-          <div className="bg-amber-950/30 border-b border-amber-800/30 px-4 py-2 flex items-center justify-between text-xs text-amber-300 shrink-0">
+          {/* Security Alert Header for Official NYSC Portal */}
+          <div className="bg-emerald-950/40 border-b border-emerald-800/40 px-4 py-2 flex items-center justify-between text-xs text-emerald-300 shrink-0">
             <div className="flex items-center gap-2 truncate">
-              <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
-              <span className="truncate">{currentSection.desc}</span>
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="font-semibold text-white truncate">{currentSection.name}:</span>
+              <span className="text-slate-300 truncate hidden sm:inline">{currentSection.desc}</span>
             </div>
-            <a
-              href={currentSection.url}
-              target="_blank"
-              rel="noreferrer"
-              className="underline text-amber-200 hover:text-white font-semibold shrink-0 ml-2"
-            >
-              Direct Link ↗
-            </a>
+            <div className="flex items-center gap-2 shrink-0 ml-2">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-200 border border-emerald-600/40 hidden md:inline">
+                Origin: *.nysc.org.ng (Verified)
+              </span>
+              <a
+                href={currentSection.url}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="underline text-emerald-300 hover:text-white font-semibold"
+              >
+                Direct Link ↗
+              </a>
+            </div>
           </div>
 
-          {/* Webview Simulator / Iframe */}
+          {/* Webview Simulator / Iframe with AppSec Sandbox controls */}
           <div className="flex-1 w-full h-full relative">
-            <iframe
-              key={key}
-              src={currentSection.url}
-              title="Official NYSC Portal"
-              className="w-full h-full border-0 bg-white"
-              sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-            />
+            {!isOriginSafe ? (
+              <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-3">
+                <ShieldAlert className="w-12 h-12 text-rose-500 animate-pulse" />
+                <h4 className="text-base font-bold text-white">Blocked External Origin</h4>
+                <p className="text-xs text-slate-400 max-w-sm">
+                  Navigation to unapproved domains outside *.nysc.org.ng is blocked by AppSec policy.
+                </p>
+              </div>
+            ) : (
+              <iframe
+                key={key}
+                src={currentSection.url}
+                title="Official NYSC Portal"
+                className="w-full h-full border-0 bg-white"
+                sandbox="allow-same-origin allow-scripts allow-forms"
+              />
+            )}
 
             {/* Floating Fallback Overlay in case iframe embedding is blocked by X-Frame-Options */}
             <div className="absolute bottom-4 right-4 bg-slate-900/95 border border-slate-700/80 p-3 rounded-2xl shadow-2xl max-w-xs text-xs backdrop-blur-md">

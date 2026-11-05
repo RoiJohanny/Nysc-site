@@ -1031,6 +1031,7 @@ export const INITIAL_CORPER_LODGES: CorperLodge[] = [
     id: 'ldg-001',
     name: 'NCCF Ikeja Family House & Corpers Lodge',
     lodge_type: 'NCCF Family House',
+    category: 'Corper Lodge',
     state: 'Lagos',
     lga: 'Ikeja',
     address: '14 Oba Akinjobi Way, GRA Ikeja, Lagos (5 mins from Secretariat)',
@@ -1039,12 +1040,14 @@ export const INITIAL_CORPER_LODGES: CorperLodge[] = [
     caretaker_name: 'Bro. Emmanuel (Family House President)',
     caretaker_phone: '+234 803 112 9901',
     available_spaces: 4,
-    notes: 'Christian corps members fellowship lodge. Strict curfew at 10:00 PM. Highly peaceful and conducive for study and remote work.'
+    notes: 'Christian corps members fellowship lodge. Strict curfew at 10:00 PM. Highly peaceful and conducive for study and remote work.',
+    gender_preference: 'Any'
   },
   {
     id: 'ldg-002',
     name: 'MCAN Ikeja Corpers Lodge',
     lodge_type: 'MCAN Corpers Lodge',
+    category: 'Corper Lodge',
     state: 'Lagos',
     lga: 'Ikeja',
     address: 'Plot 8, Lateef Jakande Road, Agidingbi, Ikeja, Lagos',
@@ -1053,12 +1056,14 @@ export const INITIAL_CORPER_LODGES: CorperLodge[] = [
     caretaker_name: 'Ustadh Luqman (MCAN Welfare Officer)',
     caretaker_phone: '+234 812 449 0182',
     available_spaces: 3,
-    notes: 'Muslim Corpers Association of Nigeria lodge. Clean and disciplined environment for male and female wings.'
+    notes: 'Muslim Corpers Association of Nigeria lodge. Clean and disciplined environment for male and female wings.',
+    gender_preference: 'Any'
   },
   {
     id: 'ldg-003',
     name: 'Ikeja Local Government Corpers Quarters',
     lodge_type: 'LGA Quarters',
+    category: 'Corper Lodge',
     state: 'Lagos',
     lga: 'Ikeja',
     address: 'Beside Ikeja LGA Secretariat, Community Road, Ikeja',
@@ -1067,12 +1072,14 @@ export const INITIAL_CORPER_LODGES: CorperLodge[] = [
     caretaker_name: 'Mr. Fagbemi (LGA Youth Officer)',
     caretaker_phone: '+234 802 771 5530',
     available_spaces: 2,
-    notes: 'Official quarters provided by the LGA chairman. Priority given to public school teachers and secretariat staff.'
+    notes: 'Official quarters provided by the LGA chairman. Priority given to public school teachers and secretariat staff.',
+    gender_preference: 'Any'
   },
   {
     id: 'ldg-004',
     name: 'NACC Surulere Catholic Corpers Lodge',
     lodge_type: 'NACC Catholic Lodge',
+    category: 'Corper Lodge',
     state: 'Lagos',
     lga: 'Surulere',
     address: 'Near St. Anthony Catholic Church, Gbaja, Surulere, Lagos',
@@ -1081,12 +1088,14 @@ export const INITIAL_CORPER_LODGES: CorperLodge[] = [
     caretaker_name: 'Sister Genevieve (NACC Coordinator)',
     caretaker_phone: '+234 806 889 2201',
     available_spaces: 5,
-    notes: 'Warm Catholic corpers community. Features morning and evening devotional chapel, good Wi-Fi coverage.'
+    notes: 'Warm Catholic corpers community. Features morning and evening devotional chapel, good Wi-Fi coverage.',
+    gender_preference: 'Any'
   },
   {
     id: 'ldg-005',
     name: 'Oshodi Community Corpers Quarters',
     lodge_type: 'Community Lodge',
+    category: 'Corper Lodge',
     state: 'Lagos',
     lga: 'Oshodi-Isolo',
     address: '22 Church Street, off Oshodi Express, Oshodi-Isolo, Lagos',
@@ -1095,7 +1104,78 @@ export const INITIAL_CORPER_LODGES: CorperLodge[] = [
     caretaker_name: 'Chief Balogun (Community Secretary)',
     caretaker_phone: '+234 808 331 4488',
     available_spaces: 6,
-    notes: 'Convenient transit hub access for corpers serving in Oshodi, Airport Road, and Ilupeju commercial zones.'
+    notes: 'Convenient transit hub access for corpers serving in Oshodi, Airport Road, and Ilupeju commercial zones.',
+    gender_preference: 'Any'
+  },
+  {
+    id: 'ldg-006',
+    name: 'Tiled Self-Con Mini-Flat (Behind Alausa Secretariat)',
+    lodge_type: 'Private Self-Con',
+    category: 'Private Rental',
+    state: 'Lagos',
+    lga: 'Ikeja',
+    address: '12 Kafi Street, Alausa, Ikeja (Walkable to Secretariat & ICM)',
+    cost_description: '₦140,000 / year (Payable in 2 installments for corpers)',
+    amenities: ['Personal Prepaid Metre (NEPA)', 'Running Borehole & Water Tank', 'Private Kitchenette & Bathroom', 'POP Ceiling & Modern Tiles', 'Fenced Compound with Gate Security'],
+    caretaker_name: 'Alhaji Rasaq (Landlord Agent)',
+    caretaker_phone: '+234 803 552 1199',
+    available_spaces: 1,
+    notes: 'Perfect for corpers working at State Ministries or Alausa banks wanting total privacy without lodge curfew.',
+    gender_preference: 'Any',
+    is_user_listing: true,
+    posted_by: 'Corps Member Babatunde (LA/26A/4819)'
+  },
+  {
+    id: 'ldg-007',
+    name: 'Female Roommate Needed - 2 Bedroom Flat in Opebi GRA',
+    lodge_type: 'Roommate / Flatmate Needed',
+    category: 'Roommate & Bedspace',
+    state: 'Lagos',
+    lga: 'Ikeja',
+    address: 'Salvation Road, Opebi, Ikeja',
+    cost_description: '₦20,000 / month split rent (Total ₦240k/yr split by two corpers)',
+    amenities: ['Furnished Living Room & TV', '2.5kVA Inverter + Solar Backup', 'Washing Machine', 'Security Estate with Uniformed Guards', 'Modern Gas Cooker'],
+    caretaker_name: 'Chioma Grace (Bank Corper)',
+    caretaker_phone: '+234 813 902 5541',
+    available_spaces: 1,
+    notes: 'Looking for a tidy, working female corper or remote tech corper to share a spacious 2-bed flat. Kitchen is already fully equipped.',
+    gender_preference: 'Female Only',
+    is_user_listing: true,
+    posted_by: 'Grace Chioma (LA/26A/4901)'
+  },
+  {
+    id: 'ldg-008',
+    name: 'Shared Master Bedroom Bedspace for Male Corper (Allen Avenue)',
+    lodge_type: 'Bedspace Offered',
+    category: 'Roommate & Bedspace',
+    state: 'Lagos',
+    lga: 'Ikeja',
+    address: '77 Allen Avenue, near Oshopey Plaza, Ikeja',
+    cost_description: '₦15,000 / month (Includes Wi-Fi and generator fueling)',
+    amenities: ['Single Bed Frame & Mattress Provided', 'High Speed Fibre Internet', 'Constant Water Flow', 'Close to BRT Bus Stop', 'Wardrobe Space'],
+    caretaker_name: 'David Oluwaseun',
+    caretaker_phone: '+234 803 881 7210',
+    available_spaces: 1,
+    notes: 'Male cyber/software corper offering a spare bedspace in a clean shared duplex. Walking distance to Fidelity and Zenith banks on Allen.',
+    gender_preference: 'Male Only',
+    is_user_listing: true,
+    posted_by: 'David Davies (LA/26A/5012)'
+  },
+  {
+    id: 'ldg-009',
+    name: 'Government Model College Teachers Staff Quarters',
+    lodge_type: 'PPA / Staff Quarters',
+    category: 'PPA Quarters',
+    state: 'Lagos',
+    lga: 'Ikeja',
+    address: 'Inside Government Senior Model College premises, Ikeja',
+    cost_description: '100% Free (Provided by Lagos State Ministry of Basic Education)',
+    amenities: ['Zero Rent', 'Located Inside School Compound', 'Electricity from School Generator', 'Security Gate & School Guards', 'Water Pumping Machine'],
+    caretaker_name: 'Vice Principal (Administration)',
+    caretaker_phone: '+234 802 334 1189',
+    available_spaces: 2,
+    notes: 'Allocated strictly to corpers posted to teach Mathematics, Physics, Chemistry, and English at Government Model College.',
+    gender_preference: 'Any'
   }
 ];
 

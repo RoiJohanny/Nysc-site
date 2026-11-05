@@ -1,31 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNysc } from '../context/NyscContext';
-import { NYSC_ANTHEM, NYSC_GLOSSARY } from '../data/mockSeed';
+import { NYSC_GLOSSARY } from '../data/mockSeed';
 import { CampChecklistItem } from '../types/nysc';
 import {
   FileCheck,
-  Music,
-  CheckCircle2,
-  BookOpen,
-  Volume2,
-  VolumeX,
-  Play,
-  Pause,
-  RotateCcw,
-  Sparkles,
-  AlertTriangle,
-  Info
+  BookOpen
 } from 'lucide-react';
 
 export const CampGuideView: React.FC = () => {
-  const { campChecklist, toggleCampItem, fireConfetti } = useNysc();
+  const { campChecklist, toggleCampItem } = useNysc();
 
-  const [activeTab, setActiveTab] = useState<'checklist' | 'anthem' | 'glossary'>('checklist');
+  const [activeTab, setActiveTab] = useState<'checklist' | 'glossary'>('checklist');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-
-  // Anthem Sing-Along player state
-  const [isPlayingAnthem, setIsPlayingAnthem] = useState(false);
-  const [activeStanzaIdx, setActiveStanzaIdx] = useState(0);
 
   const categories: CampChecklistItem['category'][] = [
     'Mandatory Documents',
@@ -39,24 +25,6 @@ export const CampGuideView: React.FC = () => {
   const totalItems = campChecklist.length;
   const packedItems = campChecklist.filter(i => i.is_packed).length;
   const packingPct = Math.round((packedItems / totalItems) * 100);
-
-  // Anthem sing-along timer simulation
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isPlayingAnthem) {
-      timer = setInterval(() => {
-        setActiveStanzaIdx(prev => {
-          if (prev >= NYSC_ANTHEM.length - 1) {
-            setIsPlayingAnthem(false);
-            fireConfetti();
-            return 0;
-          }
-          return prev + 1;
-        });
-      }, 7000); // 7s per stanza for karaoke pacing
-    }
-    return () => clearInterval(timer);
-  }, [isPlayingAnthem]);
 
   const filteredItems = selectedCategory === 'All'
     ? campChecklist
@@ -77,7 +45,7 @@ export const CampGuideView: React.FC = () => {
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Master the 35 essential camp packing items, memorize the NYSC anthem, and learn Nigerian orientation camp vernacular.
+            Master the 35 essential camp packing items and learn Nigerian orientation camp vernacular.
           </p>
         </div>
 
@@ -93,17 +61,6 @@ export const CampGuideView: React.FC = () => {
           >
             <FileCheck className="w-4 h-4" />
             <span>Packing List</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('anthem')}
-            className={`px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              activeTab === 'anthem'
-                ? 'bg-rose-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Music className="w-4 h-4" />
-            <span>Anthem Player</span>
           </button>
           <button
             onClick={() => setActiveTab('glossary')}
@@ -227,87 +184,6 @@ export const CampGuideView: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
-
-        </div>
-      ) : activeTab === 'anthem' ? (
-        /* Anthem Sing-Along View */
-        <div className="space-y-6">
-          
-          {/* Karaoke Sing-along player */}
-          <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 space-y-6 shadow-xl text-center max-w-2xl mx-auto">
-            <div className="space-y-1">
-              <span className="text-xs font-bold text-rose-400 uppercase tracking-widest">
-                National Youth Service Corps Official Anthem
-              </span>
-              <h2 className="text-2xl font-extrabold text-white">
-                "Youths Obey the Clarion Call"
-              </h2>
-              <p className="text-xs text-slate-400">
-                Mandatory for every morning parade at 05:30 AM. Drill soldiers will test you individually!
-              </p>
-            </div>
-
-            {/* Sing-Along Controller */}
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={() => setIsPlayingAnthem(!isPlayingAnthem)}
-                className="px-6 py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-rose-950/40 transition-all hover:scale-105 active:scale-95"
-              >
-                {isPlayingAnthem ? (
-                  <>
-                    <Pause className="w-4 h-4" />
-                    <span>Pause Sing-Along</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4" />
-                    <span>Start Sing-Along Mode</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={() => {
-                  setActiveStanzaIdx(0);
-                  setIsPlayingAnthem(false);
-                }}
-                className="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all"
-                title="Restart"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Stanzas Display */}
-            <div className="space-y-4 pt-2">
-              {NYSC_ANTHEM.map((item, idx) => {
-                const isActive = activeStanzaIdx === idx;
-                return (
-                  <div
-                    key={item.stanza}
-                    onClick={() => setActiveStanzaIdx(idx)}
-                    className={`p-6 rounded-2xl border transition-all cursor-pointer ${
-                      isActive
-                        ? 'bg-rose-950/40 border-rose-500/60 shadow-lg shadow-rose-950/30 scale-102'
-                        : 'bg-slate-950/60 border-slate-800 opacity-60 hover:opacity-90'
-                    }`}
-                  >
-                    <div className="text-xs font-bold text-rose-400 uppercase tracking-wider mb-2">
-                      {item.stanza} {isActive && '🎶 (Sing Now)'}
-                    </div>
-
-                    <div className="space-y-1.5 text-sm sm:text-base font-semibold text-slate-100 leading-relaxed font-serif">
-                      {item.lines.map((line, lIdx) => (
-                        <p key={lIdx} className={isActive ? 'text-white' : 'text-slate-400'}>
-                          {line}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
 
         </div>

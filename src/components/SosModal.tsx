@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNysc } from '../context/NyscContext';
 import {
   ShieldAlert,
@@ -10,6 +10,7 @@ import {
   Clock,
   CheckCircle2
 } from 'lucide-react';
+import { checkAndRecordRateLimit, RATE_LIMITS } from '../lib/rateLimit';
 
 interface SosModalProps {
   isOpen: boolean;
@@ -18,8 +19,24 @@ interface SosModalProps {
 
 export const SosModal: React.FC<SosModalProps> = ({ isOpen, onClose }) => {
   const { profile, emergencyContacts } = useNysc();
+  const [sosRateError, setSosRateError] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const handleCall = (e: React.MouseEvent, phoneNumber: string) => {
+    setSosRateError(null);
+    const rateCheck = checkAndRecordRateLimit(
+      RATE_LIMITS.SOS.key,
+      RATE_LIMITS.SOS.max,
+      RATE_LIMITS.SOS.windowMs
+    );
+    if (!rateCheck.allowed) {
+      e.preventDefault();
+      setSosRateError(
+        `Anti-Spam Security Alert: Max ${RATE_LIMITS.SOS.max} emergency dispatch attempts per minute reached. Please wait ${rateCheck.resetInSeconds}s.`
+      );
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-red-950/80 backdrop-blur-md">
@@ -48,6 +65,22 @@ export const SosModal: React.FC<SosModalProps> = ({ isOpen, onClose }) => {
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Anti-Spam / Rate Limit Warning */}
+        {sosRateError && (
+          <div className="p-3 rounded-2xl bg-amber-950/80 border border-amber-500/60 text-amber-200 text-xs flex items-center justify-between gap-2 shadow-lg">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>{sosRateError}</span>
+            </div>
+            <button
+              onClick={() => setSosRateError(null)}
+              className="text-amber-300 hover:text-white text-xs underline shrink-0"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Quick Identity Reference for Reporting */}
         <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1 text-xs">
@@ -83,6 +116,7 @@ export const SosModal: React.FC<SosModalProps> = ({ isOpen, onClose }) => {
 
             <a
               href="tel:08033107873"
+              onClick={e => handleCall(e, '08033107873')}
               className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-red-950/60 transition-all hover:scale-105 active:scale-95"
             >
               <PhoneCall className="w-4 h-4" />
@@ -91,7 +125,7 @@ export const SosModal: React.FC<SosModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Additional Seeded Contacts */}
-          {emergencyContacts.map(c => (
+          {emergencyContacts.filter(c => c.phone_number !== '08033107873').map(c => (
             <div
               key={c.id}
               className="p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex items-center justify-between gap-3"
@@ -110,6 +144,7 @@ export const SosModal: React.FC<SosModalProps> = ({ isOpen, onClose }) => {
 
               <a
                 href={`tel:${c.phone_number.replace(/[^0-9]/g, '')}`}
+                onClick={e => handleCall(e, c.phone_number)}
                 className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs flex items-center gap-1.5 transition-all"
               >
                 <PhoneCall className="w-3.5 h-3.5 text-emerald-400" />

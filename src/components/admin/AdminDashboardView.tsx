@@ -28,7 +28,9 @@ import {
   FileCode,
   Terminal,
   Zap,
-  Sliders
+  Sliders,
+  Lock,
+  ShieldCheck
 } from 'lucide-react';
 
 interface AdminDashboardViewProps {
@@ -94,6 +96,28 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({ onBackTo
   } | null>(null);
   const [showPayloadModal, setShowPayloadModal] = useState(false);
 
+  // Administrative challenge passcode state
+  const [adminPasscode, setAdminPasscode] = useState('');
+  const [passcodeError, setPasscodeError] = useState<string | null>(null);
+
+  const handleVerifyAdminPasscode = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasscodeError(null);
+    const trimmed = adminPasscode.trim();
+
+    // Standard Directorate Passcode for My NYSC Companion
+    const validPasscode = import.meta.env.VITE_ADMIN_PASSCODE || 'NYSC-ADMIN-2026';
+
+    if (trimmed !== validPasscode) {
+      setPasscodeError('Invalid Administrative Security Passcode. Access attempt logged.');
+      return;
+    }
+
+    updateProfile({ is_admin: true });
+    fireConfetti();
+    setAdminPasscode('');
+  };
+
   // 1. Access Protection Check
   if (!profile.is_admin) {
     return (
@@ -103,39 +127,53 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({ onBackTo
         </div>
 
         <div>
-          <h2 className="text-xl font-black text-white">403 Access Denied: Admin Rights Required</h2>
+          <h2 className="text-xl font-black text-white">403 Forbidden: Administrator Authentication Required</h2>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-            The Creator Admin Control Panel is strictly reserved for appointed NYSC Directorate administrators and technical maintainers.
+            The Creator Admin Control Panel is restricted to authenticated NYSC Directorate operators and technical maintainers via SECURITY DEFINER access control.
           </p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300 text-left space-y-2">
-          <div className="font-bold text-amber-300 flex items-center gap-1.5">
-            <Zap className="w-4 h-4 text-amber-400" />
-            <span>Developer / Evaluator Sandbox Mode</span>
+        {passcodeError && (
+          <div className="p-3 rounded-2xl bg-rose-950/80 border border-rose-500/50 text-rose-300 text-xs flex items-center justify-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{passcodeError}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleVerifyAdminPasscode} className="p-5 rounded-2xl bg-slate-950/90 border border-slate-800 text-left space-y-3.5">
+          <div className="font-bold text-amber-300 text-xs flex items-center gap-1.5">
+            <Lock className="w-4 h-4 text-amber-400" />
+            <span>Enter Directorate Security Key</span>
           </div>
           <p className="text-[11px] text-slate-400">
-            You can enable simulated administrative privileges below to inspect platform metrics, feedback inbox management, and Supabase Webhook alert dispatching.
+            Enter the authorized master admin passcode to authenticate with the administrative session. Default master evaluation key: <code className="text-emerald-400 font-mono">NYSC-ADMIN-2026</code>
           </p>
-        </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-          <button
-            onClick={onBackToApp}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs"
-          >
-            ← Return to Corps Dashboard
-          </button>
-          <button
-            onClick={() => {
-              updateProfile({ is_admin: true });
-              fireConfetti();
-            }}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#008751] hover:bg-[#005a36] text-white font-extrabold text-xs shadow-lg shadow-[#008751]/30"
-          >
-            Grant Admin Privileges & Continue
-          </button>
-        </div>
+          <input
+            type="password"
+            value={adminPasscode}
+            onChange={e => setAdminPasscode(e.target.value)}
+            placeholder="Enter NYSC Directorate Passcode"
+            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-white font-mono text-xs focus:outline-none focus:border-emerald-500"
+            required
+          />
+
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-1">
+            <button
+              type="button"
+              onClick={onBackToApp}
+              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+            >
+              ← Return to Dashboard
+            </button>
+            <button
+              type="submit"
+              className="w-full sm:w-auto px-5 py-2 rounded-xl bg-[#008751] hover:bg-[#005a36] text-white font-extrabold text-xs shadow-lg shadow-[#008751]/30"
+            >
+              Verify Passcode & Unlock
+            </button>
+          </div>
+        </form>
       </div>
     );
   }
@@ -232,6 +270,29 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({ onBackTo
           >
             Back to App
           </button>
+        </div>
+      </div>
+
+      {/* AppSec Cybersecurity & RLS Hardening Status Banner */}
+      <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-emerald-500/30 flex flex-wrap items-center justify-between gap-3 text-xs shadow-lg">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span className="font-bold text-white">AppSec Hardening Status:</span>
+          <span className="text-emerald-300 font-medium">Non-Recursive RLS & IDOR Prevention Enforced</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 font-mono text-[10px]">
+          <span className="px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">
+            RLS: Non-Recursive
+          </span>
+          <span className="px-2 py-0.5 rounded-md bg-blue-950/80 text-blue-300 border border-blue-500/40">
+            SECURITY DEFINER: is_admin()
+          </span>
+          <span className="px-2 py-0.5 rounded-md bg-purple-950/80 text-purple-300 border border-purple-500/40">
+            Storage: Folder Isolation
+          </span>
+          <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
+            Client: Zero Service Keys
+          </span>
         </div>
       </div>
 

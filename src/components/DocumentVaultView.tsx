@@ -16,9 +16,12 @@ import {
   ExternalLink,
   X,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  AlertTriangle
 } from 'lucide-react';
 import { exportDocumentVaultPdf } from '../lib/pdfExport';
+import { sanitizePlainText } from '../lib/sanitize';
+import { documentUploadSchema, MAX_FILE_SIZE_BYTES } from '../lib/schemas';
 
 export const DocumentVaultView: React.FC = () => {
   const { profile, vaultDocuments, addVaultDocument, deleteVaultDocument, fireConfetti } = useNysc();
@@ -26,6 +29,8 @@ export const DocumentVaultView: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<DocumentVaultItem | null>(null);
   const [downloadToast, setDownloadToast] = useState<string | null>(null);
+  const [confirmDeleteDoc, setConfirmDeleteDoc] = useState<DocumentVaultItem | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Form states
   const [docType, setDocType] = useState<DocumentVaultItem['document_type']>('Call Up Letter');
@@ -44,10 +49,19 @@ export const DocumentVaultView: React.FC = () => {
   ];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setDocName(file.name);
+    // Strict 5MB size limit check (OWASP DoS prevention)
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setUploadError(`Security Error: File size (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds the strict 5MB limit.`);
+      e.target.value = '';
+      return;
+    }
+
+    const cleanName = sanitizePlainText(file.name);
+    setDocName(cleanName);
     const sizeInMb = (file.size / (1024 * 1024)).toFixed(1);
     setFileSize(`${sizeInMb} MB`);
 
@@ -63,11 +77,27 @@ export const DocumentVaultView: React.FC = () => {
 
   const handleUpload = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!docName.trim()) return;
+    setUploadError(null);
+    const sanitizedName = sanitizePlainText(docName.trim());
+    if (!sanitizedName) {
+      setUploadError('Document name is required');
+      return;
+    }
+
+    const validation = documentUploadSchema.safeParse({
+      document_type: docType,
+      file_name: sanitizedName,
+      file_url: docUrl.trim() || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80'
+    });
+
+    if (!validation.success) {
+      setUploadError(validation.error.issues[0]?.message || 'Invalid document payload');
+      return;
+    }
 
     addVaultDocument({
       document_type: docType,
-      file_name: docName.trim(),
+      file_name: sanitizedName,
       file_url: docUrl.trim() || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
       file_size: fileSize,
       encryption_status: 'AES-256 Encrypted'
@@ -76,6 +106,7 @@ export const DocumentVaultView: React.FC = () => {
     setDocName('');
     setDocUrl('');
     setIsUploading(false);
+    fireConfetti();
   };
 
   const handleSimulateDownload = (doc: DocumentVaultItem) => {
@@ -240,9 +271,9 @@ export const DocumentVaultView: React.FC = () => {
                     <Download className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => deleteVaultDocument(doc.id)}
+                    onClick={() => setConfirmDeleteDoc(doc)}
                     className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 transition-all"
-                    title="Delete File"
+                    title="Delete File with Confirmation"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -263,6 +294,12 @@ export const DocumentVaultView: React.FC = () => {
             </h3>
 
             <form onSubmit={handleUpload} className="space-y-3.5 text-xs">
+              {uploadError && (
+                <div className="p-2.5 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-300 text-xs flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{uploadError}</span>
+                </div>
+              )}
               <div>
                 <label className="block text-slate-300 font-semibold mb-1">
                   Official Document Category
@@ -409,11 +446,8 @@ export const DocumentVaultView: React.FC = () => {
 
             <div className="flex items-center justify-between gap-3 pt-2">
               <button
-                onClick={() => {
-                  deleteVaultDocument(selectedDoc.id);
-                  setSelectedDoc(null);
-                }}
-                className="px-3.5 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-950/60 text-rose-300 border border-rose-800/40 text-xs font-semibold flex items-center gap-1.5"
+                onClick={() => setConfirmDeleteDoc(selectedDoc)}
+                className="px-3.5 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-950/60 text-rose-300 border border-rose-800/40 text-xs font-semibold flex items-center gap-1.5 transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Delete</span>
@@ -425,6 +459,53 @@ export const DocumentVaultView: React.FC = () => {
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Download Document</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sensitive Action Double Confirmation Modal */}
+      {confirmDeleteDoc && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div className="bg-slate-900 border border-rose-800/80 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center gap-3 text-rose-400 font-bold text-base">
+              <AlertTriangle className="w-6 h-6 text-rose-500 animate-pulse" />
+              <span>Confirm Permanent Vault Deletion</span>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Are you sure you want to permanently delete <strong className="text-white font-semibold">"{confirmDeleteDoc.file_name}"</strong> ({confirmDeleteDoc.document_type}) from your encrypted locker?
+            </p>
+
+            <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-rose-400/90 space-y-1">
+              <p>• This document will be completely expunged from the vault.</p>
+              <p>• Offline cache and encryption keys for this file will be wiped immediately.</p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteDoc(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  deleteVaultDocument(confirmDeleteDoc.id);
+                  if (selectedDoc?.id === confirmDeleteDoc.id) {
+                    setSelectedDoc(null);
+                  }
+                  setConfirmDeleteDoc(null);
+                  setDownloadToast(`"${confirmDeleteDoc.file_name}" permanently deleted.`);
+                  setTimeout(() => setDownloadToast(null), 3500);
+                }}
+                className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-950/60 transition-all"
+              >
+                Permanently Delete File
               </button>
             </div>
           </div>

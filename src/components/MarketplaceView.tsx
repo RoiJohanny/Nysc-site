@@ -21,9 +21,11 @@ import {
   Camera,
   PackageCheck,
   Upload,
-  ImageIcon,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Image as ImageIcon
 } from 'lucide-react';
+import { sanitizePlainText } from '../lib/sanitize';
+import { MAX_FILE_SIZE_BYTES } from '../lib/schemas';
 
 export const MarketplaceView: React.FC = () => {
   const { profile, marketplaceItems, addMarketplaceItem, toggleSoldMarketplaceItem, fireConfetti } = useNysc();
@@ -71,11 +73,21 @@ export const MarketplaceView: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
+    // AppSec Fortification: Enforce allowed image types and 5MB limit
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Security Policy: Only JPG, PNG, and WEBP image files are permitted.');
+      e.target.value = '';
       return;
     }
 
-    setImageFileName(file.name);
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      alert('Security Policy: Image file size cannot exceed 5MB.');
+      e.target.value = '';
+      return;
+    }
+
+    setImageFileName(sanitizePlainText(file.name));
     const reader = new FileReader();
     reader.onload = (loadEvent) => {
       if (loadEvent.target?.result) {
@@ -114,20 +126,23 @@ export const MarketplaceView: React.FC = () => {
 
   const handlePostItem = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !price || Number(price) <= 0) return;
+    const cleanTitle = sanitizePlainText(title.trim());
+    const cleanDesc = sanitizePlainText(desc.trim());
+    const cleanPhone = sanitizePlainText(sellerPhone.trim());
+    if (!cleanTitle || !price || Number(price) <= 0) return;
 
     const finalImage = imageUrl.trim() || CATEGORY_DEFAULT_IMAGES[category] || 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80';
 
     addMarketplaceItem({
-      seller_name: profile.full_name,
-      title: title.trim(),
-      description: desc.trim(),
+      seller_name: sanitizePlainText(profile.full_name),
+      title: cleanTitle,
+      description: cleanDesc,
       price: Number(price),
       item_condition: condition,
       category,
-      state,
-      lga,
-      seller_phone: sellerPhone.trim(),
+      state: sanitizePlainText(state),
+      lga: sanitizePlainText(lga),
+      seller_phone: cleanPhone,
       images: [finalImage],
       is_sold: false
     });

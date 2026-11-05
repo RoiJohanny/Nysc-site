@@ -370,8 +370,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
             </div>
           </div>
 
-          {/* 4 Core Pre-Camp Requirements Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {/* Core Pre-Camp Requirements Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/80 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-lg">📄</span>
@@ -395,33 +395,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
 
             <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/80 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-lg">🟩</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  Ready
-                </span>
-              </div>
-              <h4 className="text-xs font-bold text-white">2. Green Card Registration</h4>
-              <p className="text-[11px] text-slate-400 leading-snug">
-                Must contain clear biometric barcode and institutional stamp from your university or polytechnic.
-              </p>
-              <a
-                href="https://portal.nysc.org.ng/NYSC1/GreenCard.aspx"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[11px] text-emerald-400 hover:underline font-semibold block pt-1"
-              >
-                Verify Green Card ↗
-              </a>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/80 space-y-2">
-              <div className="flex items-center justify-between">
                 <span className="text-lg">🏥</span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   Mandatory
                 </span>
               </div>
-              <h4 className="text-xs font-bold text-white">3. Medical Fitness Slip</h4>
+              <h4 className="text-xs font-bold text-white">2. Medical Fitness Slip</h4>
               <p className="text-[11px] text-slate-400 leading-snug">
                 Must be issued by a recognized Government or General Hospital (with blood group, genotype & chest X-Ray).
               </p>
@@ -440,7 +419,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
                   35 Items
                 </span>
               </div>
-              <h4 className="text-xs font-bold text-white">4. White Wear & Provisions</h4>
+              <h4 className="text-xs font-bold text-white">3. White Wear & Provisions</h4>
               <p className="text-[11px] text-slate-400 leading-snug">
                 White round-neck vests, tennis shoes, waist pouch, mosquito net, and flashlight.
               </p>
@@ -468,7 +447,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
                   Orientation Camp Phase Active (21 Days)
                 </h3>
                 <p className="text-xs text-slate-300">
-                  Interactive camp packing checklist, NYSC Anthem sing-along player, and camp rules guide.
+                  Interactive camp packing checklist and camp rules guide.
                 </p>
               </div>
             </div>
@@ -506,16 +485,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
             </div>
 
             <div className="flex items-center gap-2">
-              <a
-                href="https://verify.nysc.org.ng"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-all"
-              >
-                <span>Verify Discharge Cert</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-
               <button
                 onClick={() => onNavigateTab('career')}
                 className="px-3.5 py-2 rounded-xl bg-[#008751] hover:bg-[#006f43] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md"

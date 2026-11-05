@@ -39,19 +39,55 @@
     },
     "CalendarEvent": {
       "title": "CalendarEvent",
-      "description": "Synchronized NYSC service events and deadlines for Google Calendar",
+      "description": "Customizable NYSC service events and deadlines for Google Calendar",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "user_id": { "type": "string" },
         "title": { "type": "string" },
         "description": { "type": "string" },
-        "start_time": { "type": "string" },
-        "end_time": { "type": "string" },
-        "google_event_id": { "type": "string" },
-        "event_type": { "type": "string" }
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "location": { "type": "string" },
+        "eventType": { "type": "string" },
+        "recurrenceRule": { "type": "string" }
       },
-      "required": ["id", "user_id", "title", "start_time"]
+      "required": ["id", "title", "startDate"]
+    },
+    "HousingListing": {
+      "title": "HousingListing",
+      "description": "Corper lodges, private rentals, flat shares, and roommate listings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "lodge_type": { "type": "string" },
+        "category": { "type": "string" },
+        "state": { "type": "string" },
+        "lga": { "type": "string" },
+        "address": { "type": "string" },
+        "cost_description": { "type": "string" },
+        "caretaker_name": { "type": "string" },
+        "caretaker_phone": { "type": "string" },
+        "available_spaces": { "type": "number" },
+        "gender_preference": { "type": "string" }
+      },
+      "required": ["id", "name", "cost_description"]
+    },
+    "EmergencyContact": {
+      "title": "EmergencyContact",
+      "description": "State-specific emergency desk and inspectorate contact records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "contact_name": { "type": "string" },
+        "role_title": { "type": "string" },
+        "phone_number": { "type": "string" },
+        "state": { "type": "string" },
+        "lga": { "type": "string" }
+      },
+      "required": ["id", "contact_name", "phone_number"]
     }
   },
   "firestore": {
@@ -66,6 +102,14 @@
     "/calendar_events/{eventId}": {
       "schema": "CalendarEvent",
       "description": "Calendar events synced with Google Calendar"
+    },
+    "/housing_listings/{listingId}": {
+      "schema": "HousingListing",
+      "description": "Lodges, private apartments, and roommate offerings"
+    },
+    "/emergency_contacts/{contactId}": {
+      "schema": "EmergencyContact",
+      "description": "Individual profile emergency contacts and state inspectorate lines"
     }
   }
 }

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { db } from '../lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import {
   Profile,
   LocationSchedule,
@@ -19,7 +19,9 @@ import {
   NyscPhase,
   UserFeedback,
   WebhookConfig,
-  WebhookLogItem
+  WebhookLogItem,
+  CorperLodge,
+  NyscCalendarEvent
 } from '../types/nysc';
 import {
   INITIAL_PROFILE,
@@ -37,8 +39,11 @@ import {
   INITIAL_CAMP_CHECKLIST,
   INITIAL_USER_FEEDBACK,
   INITIAL_WEBHOOK_CONFIG,
-  INITIAL_WEBHOOK_LOGS
+  INITIAL_WEBHOOK_LOGS,
+  INITIAL_CORPER_LODGES
 } from '../data/mockSeed';
+import { generateStateEmergencyContacts } from '../data/stateEmergencyDirectory';
+import { generateDefaultNyscEvents } from '../lib/googleCalendar';
 
 interface NyscContextType {
   profile: Profile;
@@ -73,10 +78,20 @@ interface NyscContextType {
   addJobListing: (job: Omit<JobListing, 'id' | 'poster_id' | 'created_at'>) => void;
   ppaWorkLogs: PpaWorkLog[];
   addPpaWorkLog: (log: Omit<PpaWorkLog, 'id' | 'user_id'>) => void;
+  updatePpaWorkLog: (id: string, data: Partial<PpaWorkLog>) => void;
   deletePpaWorkLog: (id: string) => void;
   emergencyContacts: EmergencyContact[];
   addEmergencyContact: (contact: Omit<EmergencyContact, 'id' | 'user_id'>) => void;
+  updateEmergencyContact: (id: string, data: Partial<EmergencyContact>) => void;
   deleteEmergencyContact: (id: string) => void;
+  resetEmergencyContactsToState: (stateName?: string, lgaName?: string) => void;
+  housingListings: CorperLodge[];
+  addHousingListing: (listing: Omit<CorperLodge, 'id' | 'created_at'>) => void;
+  deleteHousingListing: (id: string) => void;
+  calendarEvents: NyscCalendarEvent[];
+  addCalendarEvent: (event: Omit<NyscCalendarEvent, 'id'>) => void;
+  updateCalendarEvent: (id: string, data: Partial<NyscCalendarEvent>) => void;
+  deleteCalendarEvent: (id: string) => void;
   campChecklist: CampChecklistItem[];
   toggleCampItem: (id: string) => void;
   userFeedback: UserFeedback[];
@@ -142,8 +157,16 @@ export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [ppaWorkLogs, setPpaWorkLogs] = useState<PpaWorkLog[]>(() =>
     loadStorage('ppa_logs', INITIAL_PPA_WORK_LOGS)
   );
-  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>(() =>
-    loadStorage('emergency_contacts', INITIAL_EMERGENCY_CONTACTS)
+  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>(() => {
+    const saved = loadStorage<EmergencyContact[]>('emergency_contacts', []);
+    if (saved && saved.length > 0) return saved;
+    return generateStateEmergencyContacts(INITIAL_PROFILE.state_of_deployment, INITIAL_PROFILE.lga, INITIAL_PROFILE.id);
+  });
+  const [housingListings, setHousingListings] = useState<CorperLodge[]>(() =>
+    loadStorage('housing_listings', INITIAL_CORPER_LODGES)
+  );
+  const [calendarEvents, setCalendarEvents] = useState<NyscCalendarEvent[]>(() =>
+    loadStorage('calendar_events', generateDefaultNyscEvents(INITIAL_PROFILE))
   );
   const [campChecklist, setCampChecklist] = useState<CampChecklistItem[]>(() =>
     loadStorage('camp_checklist', INITIAL_CAMP_CHECKLIST)
@@ -170,6 +193,8 @@ export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => saveStorage('job_listings', jobListings), [jobListings]);
   useEffect(() => saveStorage('ppa_logs', ppaWorkLogs), [ppaWorkLogs]);
   useEffect(() => saveStorage('emergency_contacts', emergencyContacts), [emergencyContacts]);
+  useEffect(() => saveStorage('housing_listings', housingListings), [housingListings]);
+  useEffect(() => saveStorage('calendar_events', calendarEvents), [calendarEvents]);
   useEffect(() => saveStorage('camp_checklist', campChecklist), [campChecklist]);
   useEffect(() => saveStorage('user_feedback', userFeedback), [userFeedback]);
   useEffect(() => saveStorage('webhook_config', webhookConfig), [webhookConfig]);
@@ -354,6 +379,12 @@ export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPpaWorkLogs(prev => [newLog, ...prev]);
   };
 
+  const updatePpaWorkLog = (id: string, data: Partial<PpaWorkLog>) => {
+    setPpaWorkLogs(prev =>
+      prev.map(p => (p.id === id ? { ...p, ...data } : p))
+    );
+  };
+
   const deletePpaWorkLog = (id: string) => {
     setPpaWorkLogs(prev => prev.filter(p => p.id !== id));
   };
@@ -365,10 +396,84 @@ export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user_id: profile.id
     };
     setEmergencyContacts(prev => [newContact, ...prev]);
+    try {
+      setDoc(doc(db, 'emergency_contacts', newContact.id), newContact, { merge: true }).catch(() => {});
+    } catch {}
+  };
+
+  const updateEmergencyContact = (id: string, data: Partial<EmergencyContact>) => {
+    setEmergencyContacts(prev =>
+      prev.map(c => (c.id === id ? { ...c, ...data, updated_at: new Date().toISOString() } : c))
+    );
+    try {
+      setDoc(doc(db, 'emergency_contacts', id), { ...data, updated_at: new Date().toISOString() }, { merge: true }).catch(() => {});
+    } catch {}
   };
 
   const deleteEmergencyContact = (id: string) => {
     setEmergencyContacts(prev => prev.filter(e => e.id !== id));
+    try {
+      deleteDoc(doc(db, 'emergency_contacts', id)).catch(() => {});
+    } catch {}
+  };
+
+  const resetEmergencyContactsToState = (stateName?: string, lgaName?: string) => {
+    const targetState = stateName || profile.state_of_deployment || 'Lagos';
+    const targetLga = lgaName || profile.lga || 'Ikeja';
+    const fresh = generateStateEmergencyContacts(targetState, targetLga, profile.id);
+    setEmergencyContacts(prev => {
+      const customOnly = prev.filter(c => !c.is_default);
+      return [...fresh, ...customOnly];
+    });
+  };
+
+  const addHousingListing = (listingData: Omit<CorperLodge, 'id' | 'created_at'>) => {
+    const newListing: CorperLodge = {
+      ...listingData,
+      id: `ldg-${Date.now()}`,
+      is_user_listing: true,
+      created_at: new Date().toISOString()
+    };
+    setHousingListings(prev => [newListing, ...prev]);
+    try {
+      setDoc(doc(db, 'housing_listings', newListing.id), newListing, { merge: true }).catch(() => {});
+    } catch {}
+  };
+
+  const deleteHousingListing = (id: string) => {
+    setHousingListings(prev => prev.filter(l => l.id !== id));
+    try {
+      deleteDoc(doc(db, 'housing_listings', id)).catch(() => {});
+    } catch {}
+  };
+
+  const addCalendarEvent = (eventData: Omit<NyscCalendarEvent, 'id'>) => {
+    const newEvent: NyscCalendarEvent = {
+      ...eventData,
+      id: `cal-${Date.now()}`,
+      user_id: profile.id,
+      created_at: new Date().toISOString()
+    };
+    setCalendarEvents(prev => [newEvent, ...prev]);
+    try {
+      setDoc(doc(db, 'calendar_events', newEvent.id), newEvent, { merge: true }).catch(() => {});
+    } catch {}
+  };
+
+  const updateCalendarEvent = (id: string, data: Partial<NyscCalendarEvent>) => {
+    setCalendarEvents(prev =>
+      prev.map(ev => (ev.id === id ? { ...ev, ...data } : ev))
+    );
+    try {
+      setDoc(doc(db, 'calendar_events', id), { ...data, updated_at: new Date().toISOString() }, { merge: true }).catch(() => {});
+    } catch {}
+  };
+
+  const deleteCalendarEvent = (id: string) => {
+    setCalendarEvents(prev => prev.filter(ev => ev.id !== id));
+    try {
+      deleteDoc(doc(db, 'calendar_events', id)).catch(() => {});
+    } catch {}
   };
 
   const toggleCampItem = (id: string) => {
@@ -609,10 +714,20 @@ export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addJobListing,
         ppaWorkLogs,
         addPpaWorkLog,
+        updatePpaWorkLog,
         deletePpaWorkLog,
         emergencyContacts,
         addEmergencyContact,
+        updateEmergencyContact,
         deleteEmergencyContact,
+        resetEmergencyContactsToState,
+        housingListings,
+        addHousingListing,
+        deleteHousingListing,
+        calendarEvents,
+        addCalendarEvent,
+        updateCalendarEvent,
+        deleteCalendarEvent,
         campChecklist,
         toggleCampItem,
         userFeedback,

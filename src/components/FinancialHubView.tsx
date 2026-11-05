@@ -16,6 +16,8 @@ import {
   Check,
   Edit2
 } from 'lucide-react';
+import { sanitizePlainText } from '../lib/sanitize';
+import { expenseFormSchema } from '../lib/schemas';
 
 export const FinancialHubView: React.FC = () => {
   const { financials, updateFinancials, expenses, addExpense, deleteExpense, fireConfetti } = useNysc();
@@ -69,18 +71,33 @@ export const FinancialHubView: React.FC = () => {
 
   const handleAddExpense = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim() || !newAmount || Number(newAmount) <= 0) return;
+    const cleanTitle = sanitizePlainText(newTitle.trim());
+    const parsedAmount = Number(newAmount);
+    if (!cleanTitle || !newAmount || parsedAmount <= 0) return;
+
+    const validation = expenseFormSchema.safeParse({
+      category: newCategory,
+      amount: parsedAmount,
+      description: cleanTitle,
+      date: newDate
+    });
+
+    if (!validation.success) {
+      console.warn('Expense validation failed:', validation.error.issues[0]?.message);
+      return;
+    }
 
     addExpense({
-      title: newTitle.trim(),
+      title: validation.data.description,
       category: newCategory,
-      amount: Number(newAmount),
-      expense_date: newDate
+      amount: validation.data.amount,
+      expense_date: validation.data.date
     });
 
     setNewTitle('');
     setNewAmount('');
     setIsAddingExpense(false);
+    fireConfetti();
   };
 
   const filteredExpenses = filterCategory === 'All'

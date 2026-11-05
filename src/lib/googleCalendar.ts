@@ -1,19 +1,8 @@
 import { db } from './firebase';
 import { doc, setDoc, getDocs, collection, deleteDoc } from 'firebase/firestore';
+import { NyscCalendarEvent } from '../types/nysc';
 
-export interface NyscCalendarEvent {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  startDate: string; // ISO string or YYYYMMDDTHHMMSSZ
-  endDate: string;
-  allDay?: boolean;
-  eventType: 'cds' | 'clearance' | 'pop' | 'swearing_in' | 'custom';
-  recurrenceRule?: string; // e.g. 'RRULE:FREQ=WEEKLY;BYDAY=TH'
-  syncedToGoogle?: boolean;
-  googleCalendarUrl?: string;
-}
+export type { NyscCalendarEvent };
 
 /**
  * Format date for Google Calendar Web Template: YYYYMMDDTHHMMSSZ or YYYYMMDD
@@ -157,6 +146,15 @@ export async function saveCalendarEventToFirestore(userId: string, event: NyscCa
     }, { merge: true });
   } catch (error) {
     console.error('Error saving event to Firestore:', error);
+  }
+}
+
+export async function deleteCalendarEventFromFirestore(eventId: string): Promise<void> {
+  try {
+    const docRef = doc(db, 'calendar_events', eventId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error('Error deleting event from Firestore:', error);
   }
 }
 

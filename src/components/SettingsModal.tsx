@@ -39,6 +39,9 @@ import {
   MapPin,
   Clock
 } from 'lucide-react';
+import { sanitizePlainText } from '../lib/sanitize';
+import { feedbackFormSchema, profileFormSchema } from '../lib/schemas';
+import { checkAndRecordRateLimit, RATE_LIMITS } from '../lib/rateLimit';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -119,23 +122,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [datesStatusMessage, setDatesStatusMessage] = useState<string | null>(null);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [backupToast, setBackupToast] = useState<string | null>(null);
+  const [feedbackRateError, setFeedbackRateError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     updateProfile({
-      full_name: fullName.trim(),
-      phone: phone.trim(),
-      state_code: stateCode.trim(),
-      call_up_no: callUpNo.trim(),
-      state_of_deployment: stateDeployment,
-      lga: lga.trim(),
-      batch_stream: batchStream.trim(),
+      full_name: sanitizePlainText(fullName),
+      phone: sanitizePlainText(phone),
+      state_code: sanitizePlainText(stateCode),
+      call_up_no: sanitizePlainText(callUpNo),
+      state_of_deployment: sanitizePlainText(stateDeployment),
+      lga: sanitizePlainText(lga),
+      batch_stream: sanitizePlainText(batchStream),
       current_phase: phase,
-      ppa_name: ppaName.trim(),
-      ppa_address: ppaAddress.trim(),
-      cds_group: cdsGroup,
+      ppa_name: sanitizePlainText(ppaName),
+      ppa_address: sanitizePlainText(ppaAddress),
+      cds_group: sanitizePlainText(cdsGroup),
       swearing_in_date: swearingInDate,
       pop_date: popDate
     });
@@ -174,7 +179,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFeedbackRateError(null);
     if (!feedbackMessage.trim()) return;
+
+    // Rate Limiting Check: Max 3 feedback submissions per 10 minutes
+    const rateCheck = checkAndRecordRateLimit(
+      RATE_LIMITS.FEEDBACK.key,
+      RATE_LIMITS.FEEDBACK.max,
+      RATE_LIMITS.FEEDBACK.windowMs
+    );
+    if (!rateCheck.allowed) {
+      setFeedbackRateError(
+        `Anti-Automation Cooldown: Limit of ${RATE_LIMITS.FEEDBACK.max} tickets per 10 minutes reached. Please wait ${rateCheck.resetInSeconds}s.`
+      );
+      return;
+    }
+
+    // Zod Schema Validation & Sanitization
+    const validation = feedbackFormSchema.safeParse({
+      category: feedbackCategory,
+      message: feedbackMessage
+    });
+
+    if (!validation.success) {
+      setFeedbackRateError(validation.error.issues[0]?.message || 'Invalid feedback content');
+      return;
+    }
 
     setIsSubmittingFeedback(true);
     try {
@@ -182,21 +212,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         user_id: profile.id,
         user_name: profile.full_name,
         user_phone: profile.phone,
-        category: feedbackCategory,
-        message: feedbackMessage.trim(),
+        category: validation.data.category,
+        message: validation.data.message,
         status: 'pending'
       });
       setIsSubmittingFeedback(false);
       setFeedbackSubmittedTicket(item.id);
       setFeedbackMessage('');
+      fireConfetti();
     } catch {
       setIsSubmittingFeedback(false);
+      setFeedbackRateError('Failed to record feedback ticket. Please try again.');
     }
   };
 
   const totalCachedRecords = expenses.length + clearances.length + cdsLogs.length + vaultDocuments.length;
-
-  const [backupToast, setBackupToast] = useState<string | null>(null);
 
   const handleExportBackupJson = () => {
     const backupData = {
@@ -765,6 +795,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       type="button"
                       onClick={() => setFeedbackSubmittedTicket(null)}
                       className="text-emerald-400 hover:text-white text-[11px] underline"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                )}
+
+                {feedbackRateError && (
+                  <div className="p-3 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-300 text-xs flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <span>{feedbackRateError}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFeedbackRateError(null)}
+                      className="text-rose-400 hover:text-white text-[11px] underline ml-2"
                     >
                       Dismiss
                     </button>

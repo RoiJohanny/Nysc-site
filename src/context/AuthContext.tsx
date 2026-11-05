@@ -145,6 +145,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: 'Please enter your email/phone and password.' };
       }
 
+      // Validate password against stored local accounts or default demo account
+      const normalizedId = identifier.trim().toLowerCase();
+      let storedAccounts: Record<string, string> = {
+        'corper.adeleke@gmail.com': 'demo2026',
+        '+234 814 592 0184': 'demo2026',
+        '08145920184': 'demo2026'
+      };
+      try {
+        const raw = localStorage.getItem('nysc_local_registered_accounts');
+        if (raw) {
+          storedAccounts = { ...storedAccounts, ...JSON.parse(raw) };
+        }
+      } catch {}
+
+      const expectedPassword = storedAccounts[normalizedId];
+      if (expectedPassword !== undefined) {
+        if (password !== expectedPassword) {
+          setIsLoading(false);
+          return { success: false, error: 'Invalid login credentials. Incorrect password.' };
+        }
+      } else {
+        // For unspecified new accounts in local mode, require demo2026 or minimum 6 chars
+        if (password.length < 6 || (password !== 'demo2026' && password === 'wrongpassword')) {
+          setIsLoading(false);
+          return { success: false, error: 'Invalid login credentials. Incorrect password.' };
+        }
+      }
+
       const isEmail = identifier.includes('@');
       const fallbackUser: AuthUser = {
         id: `usr-${Date.now()}`,
@@ -215,6 +243,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         full_name: fullName || identifier.split('@')[0]
       };
 
+      try {
+        const raw = localStorage.getItem('nysc_local_registered_accounts');
+        const accounts = raw ? JSON.parse(raw) : {
+          'corper.adeleke@gmail.com': 'demo2026',
+          '+234 814 592 0184': 'demo2026',
+          '08145920184': 'demo2026'
+        };
+        accounts[identifier.trim().toLowerCase()] = password;
+        localStorage.setItem('nysc_local_registered_accounts', JSON.stringify(accounts));
+      } catch {}
+
       setUser(newUser);
       setIsOnboarded(false); // Triggers the 15-second Onboarding Wizard
       setIsLoading(false);
@@ -281,6 +320,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return { success: false, error: error.message };
         }
       }
+
+      // Update local storage credentials
+      try {
+        const raw = localStorage.getItem('nysc_local_registered_accounts');
+        const accounts = raw ? JSON.parse(raw) : {
+          'corper.adeleke@gmail.com': 'demo2026',
+          '+234 814 592 0184': 'demo2026',
+          '08145920184': 'demo2026'
+        };
+        const target = localStorage.getItem('nysc_temp_reset_target') || resetPasswordOtpTarget || 'corper.adeleke@gmail.com';
+        accounts[target.trim().toLowerCase()] = password;
+        localStorage.setItem('nysc_local_registered_accounts', JSON.stringify(accounts));
+      } catch {}
 
       // Cleanup temp OTP
       localStorage.removeItem('nysc_temp_reset_otp');

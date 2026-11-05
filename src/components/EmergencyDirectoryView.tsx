@@ -16,8 +16,16 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  Send
+  Send,
+  Edit2,
+  RefreshCw,
+  X,
+  Check,
+  AlertTriangle
 } from 'lucide-react';
+import { sanitizePlainText } from '../lib/sanitize';
+import { emergencyContactSchema, feedbackFormSchema } from '../lib/schemas';
+import { checkAndRecordRateLimit, RATE_LIMITS } from '../lib/rateLimit';
 
 export const EmergencyDirectoryView: React.FC = () => {
   const {
@@ -25,7 +33,10 @@ export const EmergencyDirectoryView: React.FC = () => {
     updateProfile,
     emergencyContacts,
     addEmergencyContact,
+    updateEmergencyContact,
     deleteEmergencyContact,
+    resetEmergencyContactsToState,
+    addUserFeedback,
     fireConfetti
   } = useNysc();
 
@@ -38,50 +49,203 @@ export const EmergencyDirectoryView: React.FC = () => {
   const [contactName, setContactName] = useState('');
   const [contactRole, setContactRole] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+  const [contactNotes, setContactNotes] = useState('');
+  const [contactError, setContactError] = useState<string | null>(null);
+
+  // Form states for editing contact
+  const [editingContact, setEditingContact] = useState<EmergencyContact | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editRole, setEditRole] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editState, setEditState] = useState('');
+  const [editLga, setEditLga] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [editError, setEditError] = useState<string | null>(null);
 
   // Form state for Feedback
   const [feedbackCategory, setFeedbackCategory] = useState<UserFeedback['category']>('general');
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
+  const [feedbackRateError, setFeedbackRateError] = useState<string | null>(null);
+
+  // SOS Rate limit error state
+  const [sosRateError, setSosRateError] = useState<string | null>(null);
+
+  const handleSosCallAttempt = (e: React.MouseEvent) => {
+    setSosRateError(null);
+    const rateCheck = checkAndRecordRateLimit(
+      RATE_LIMITS.SOS.key,
+      RATE_LIMITS.SOS.max,
+      RATE_LIMITS.SOS.windowMs
+    );
+    if (!rateCheck.allowed) {
+      e.preventDefault();
+      setSosRateError(
+        `Anti-Spam Security Cooldown: Max ${RATE_LIMITS.SOS.max} emergency dispatch calls per minute allowed. Please wait ${rateCheck.resetInSeconds}s.`
+      );
+    }
+  };
+
+  const openEditModal = (contact: EmergencyContact) => {
+    setEditingContact(contact);
+    setEditName(contact.contact_name);
+    setEditRole(contact.role_title);
+    setEditPhone(contact.phone_number);
+    setEditState(contact.state || profile.state_of_deployment);
+    setEditLga(contact.lga || profile.lga);
+    setEditNotes(contact.notes || '');
+    setEditError(null);
+  };
+
+  const handleSaveEditedContact = (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditError(null);
+    if (!editingContact) return;
+
+    const validation = emergencyContactSchema.safeParse({
+      contact_name: editName,
+      role_title: editRole,
+      phone_number: editPhone,
+      notes: editNotes
+    });
+
+    if (!validation.success) {
+      setEditError(validation.error.issues[0]?.message || 'Invalid contact information');
+      return;
+    }
+
+    updateEmergencyContact(editingContact.id, {
+      contact_name: validation.data.contact_name,
+      role_title: validation.data.role_title,
+      phone_number: validation.data.phone_number,
+      state: sanitizePlainText(editState),
+      lga: sanitizePlainText(editLga),
+      notes: validation.data.notes || ''
+    });
+
+    setEditingContact(null);
+    fireConfetti();
+  };
 
   const handleAddContact = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!contactName.trim() || !contactPhone.trim()) return;
+    setContactError(null);
+
+    const validation = emergencyContactSchema.safeParse({
+      contact_name: contactName,
+      role_title: contactRole || 'Custom Emergency Contact',
+      phone_number: contactPhone,
+      notes: contactNotes
+    });
+
+    if (!validation.success) {
+      setContactError(validation.error.issues[0]?.message || 'Invalid contact details');
+      return;
+    }
 
     addEmergencyContact({
-      contact_name: contactName.trim(),
-      role_title: contactRole.trim() || 'Corper Contact',
-      phone_number: contactPhone.trim(),
+      contact_name: validation.data.contact_name,
+      role_title: validation.data.role_title,
+      phone_number: validation.data.phone_number,
       is_default: false,
       state: profile.state_of_deployment,
-      lga: profile.lga
+      lga: profile.lga,
+      notes: validation.data.notes || ''
     });
 
     setContactName('');
     setContactRole('');
     setContactPhone('');
+    setContactNotes('');
     setIsAddingContact(false);
     fireConfetti();
   };
 
-  const handleSendFeedback = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!feedbackMessage.trim()) return;
-
-    // Simulate feedback submission
-    setFeedbackSuccess(true);
-    setFeedbackMessage('');
+  const handleResetToState = () => {
+    resetEmergencyContactsToState(profile.state_of_deployment, profile.lga);
     fireConfetti();
-    setTimeout(() => setFeedbackSuccess(false), 4000);
   };
 
-  const filteredCorpsMembers = CORPS_MEMBERS_DIRECTORY.filter(member => {
+  const handleSendFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFeedbackRateError(null);
+    if (!feedbackMessage.trim()) return;
+
+    // Rate Limiting: Max 3 feedback submissions per 10 minutes
+    const rateCheck = checkAndRecordRateLimit(
+      RATE_LIMITS.FEEDBACK.key,
+      RATE_LIMITS.FEEDBACK.max,
+      RATE_LIMITS.FEEDBACK.windowMs
+    );
+    if (!rateCheck.allowed) {
+      setFeedbackRateError(
+        `Anti-Automation Security: Max ${RATE_LIMITS.FEEDBACK.max} feedback submissions per 10 minutes. Please wait ${rateCheck.resetInSeconds}s.`
+      );
+      return;
+    }
+
+    // Zod Schema Validation & Sanitization
+    const validation = feedbackFormSchema.safeParse({
+      category: feedbackCategory,
+      message: feedbackMessage
+    });
+
+    if (!validation.success) {
+      setFeedbackRateError(validation.error.issues[0]?.message || 'Invalid feedback text');
+      return;
+    }
+
+    try {
+      await addUserFeedback({
+        user_id: profile.id,
+        user_name: profile.full_name,
+        user_phone: profile.phone,
+        category: validation.data.category,
+        message: validation.data.message,
+        status: 'pending'
+      });
+      setFeedbackSuccess(true);
+      setFeedbackMessage('');
+      fireConfetti();
+      setTimeout(() => setFeedbackSuccess(false), 4500);
+    } catch {
+      setFeedbackRateError('Failed to record feedback. Please try again.');
+    }
+  };
+
+  // Directory filter strictly obeying is_directory_visible = true (IDOR & Privacy Policy Enforcement)
+  const sanitizedSearch = sanitizePlainText(searchDirectory).toLowerCase();
+  
+  // Combine directory members who opted in, plus user's card if user enabled is_directory_visible
+  const publicMembers = CORPS_MEMBERS_DIRECTORY.filter(m => (m as any).is_directory_visible !== false);
+  
+  const allVisibleMembers = profile.is_directory_visible
+    ? [
+        {
+          id: profile.id,
+          full_name: `${profile.full_name} (You)`,
+          state_code: profile.state_code || 'LA/26A/4819',
+          state: profile.state_of_deployment,
+          lga: profile.lga,
+          ppa: profile.ppa_name,
+          cds: profile.cds_group,
+          phone: profile.show_phone_in_directory ? profile.phone : 'Protected / Hidden',
+          batch: profile.batch_stream,
+          avatar: profile.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+          is_directory_visible: true
+        },
+        ...publicMembers.filter(m => m.id !== profile.id)
+      ]
+    : publicMembers.filter(m => m.id !== profile.id);
+
+  const filteredCorpsMembers = allVisibleMembers.filter(member => {
     const matchesState = filterState === 'All' || member.state === filterState;
     const matchesSearch =
-      member.full_name.toLowerCase().includes(searchDirectory.toLowerCase()) ||
-      member.state_code.toLowerCase().includes(searchDirectory.toLowerCase()) ||
-      member.lga.toLowerCase().includes(searchDirectory.toLowerCase()) ||
-      member.cds.toLowerCase().includes(searchDirectory.toLowerCase());
+      !sanitizedSearch ||
+      member.full_name.toLowerCase().includes(sanitizedSearch) ||
+      member.state_code.toLowerCase().includes(sanitizedSearch) ||
+      member.lga.toLowerCase().includes(sanitizedSearch) ||
+      member.cds.toLowerCase().includes(sanitizedSearch);
     return matchesState && matchesSearch;
   });
 
@@ -147,24 +311,62 @@ export const EmergencyDirectoryView: React.FC = () => {
         /* Emergency SOS Hotlines View */
         <div className="space-y-6">
           
+          {/* Anti-Spam SOS Rate Limit Alert */}
+          {sosRateError && (
+            <div className="p-3 rounded-2xl bg-amber-950/80 border border-amber-500/60 text-amber-200 text-xs flex items-center justify-between gap-2 shadow-lg">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>{sosRateError}</span>
+              </div>
+              <button
+                onClick={() => setSosRateError(null)}
+                className="text-amber-300 hover:text-white text-xs underline shrink-0"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
           <div className="bg-red-950/20 border border-red-800/40 p-4 rounded-xl text-xs text-red-200 flex items-start gap-3">
             <ShieldAlert className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold">In Extreme Emergency:</span> Dial the NYSC National Distress Hotline immediately at <a href="tel:08033107873" className="font-mono underline font-bold text-red-300">08033107873</a>. State your full name, State Code ({profile.state_code || 'LA/26A/4819'}), exact LGA, and current landmark.
+              <span className="font-bold">In Extreme Emergency:</span> Dial the NYSC National Distress Hotline immediately at <a href="tel:08033107873" onClick={handleSosCallAttempt} className="font-mono underline font-bold text-red-300">08033107873</a>. State your full name, State Code ({profile.state_code || 'LA/26A/4819'}), exact LGA, and current landmark.
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
-              Emergency Desk & Inspectorate Contacts
-            </h3>
-            <button
-              onClick={() => setIsAddingContact(true)}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700"
-            >
-              <Plus className="w-3.5 h-3.5 text-red-400" />
-              <span>Add Custom Contact</span>
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+                  Emergency Desk & Inspectorate Contacts
+                </h3>
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#008751]/20 text-emerald-300 border border-[#008751]/30">
+                  {profile.state_of_deployment} • {profile.lga} LGA
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                State coordinator emergency desk, LGI office, police command, and trauma unit. Personalized for your profile.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={handleResetToState}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all"
+                title={`Sync official state numbers for ${profile.state_of_deployment}`}
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-blue-400" />
+                <span>Sync State Defaults</span>
+              </button>
+
+              <button
+                onClick={() => setIsAddingContact(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all"
+              >
+                <Plus className="w-3.5 h-3.5 text-red-400" />
+                <span>Add Contact</span>
+              </button>
+            </div>
           </div>
 
           {/* Contacts Grid */}
@@ -172,33 +374,61 @@ export const EmergencyDirectoryView: React.FC = () => {
             {emergencyContacts.map(contact => (
               <div
                 key={contact.id}
-                className="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 space-y-3 shadow-xl hover:border-red-500/30 transition-all flex flex-col justify-between"
+                className="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 space-y-3 shadow-xl hover:border-red-500/30 transition-all flex flex-col justify-between group"
               >
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-red-400 uppercase tracking-wide">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[11px] font-bold text-red-400 uppercase tracking-wide truncate">
                       {contact.role_title}
                     </span>
-                    {contact.is_default && (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">
-                        Official
-                      </span>
-                    )}
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      {contact.is_default ? (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">
+                          {contact.state || 'Official'}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+                          Personal
+                        </span>
+                      )}
+
+                      <button
+                        onClick={() => openEditModal(contact)}
+                        className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+                        title="Edit contact for your profile"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
                   <h4 className="text-base font-bold text-white">
                     {contact.contact_name}
                   </h4>
 
-                  <div className="text-sm font-mono font-bold text-emerald-400 pt-1">
+                  <div className="text-sm font-mono font-bold text-emerald-400 pt-0.5">
                     {contact.phone_number}
                   </div>
+
+                  {contact.notes && (
+                    <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed pt-1">
+                      {contact.notes}
+                    </p>
+                  )}
+
+                  {contact.state && (
+                    <div className="text-[10px] text-slate-500 font-mono">
+                      Location: {contact.state}{contact.lga ? ` • ${contact.lga}` : ''}
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
                   <a
                     href={`tel:${contact.phone_number.replace(/[^0-9]/g, '')}`}
-                    className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-red-950/50 transition-all"
+                    onClick={handleSosCallAttempt}
+                    className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-red-950/50 transition-all hover:scale-102"
                   >
                     <PhoneCall className="w-3.5 h-3.5" />
                     <span>Dial Hotline</span>
@@ -208,6 +438,7 @@ export const EmergencyDirectoryView: React.FC = () => {
                     <button
                       onClick={() => deleteEmergencyContact(contact.id)}
                       className="p-2 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-rose-950/30 transition-all"
+                      title="Delete contact"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -372,6 +603,21 @@ export const EmergencyDirectoryView: React.FC = () => {
             </div>
           )}
 
+          {feedbackRateError && (
+            <div className="p-3.5 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-300 text-xs flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{feedbackRateError}</span>
+              </div>
+              <button
+                onClick={() => setFeedbackRateError(null)}
+                className="text-rose-400 hover:text-white text-xs underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
           <form onSubmit={handleSendFeedback} className="space-y-3 text-xs">
             <div>
               <label className="block text-slate-300 font-semibold mb-1">
@@ -423,6 +669,13 @@ export const EmergencyDirectoryView: React.FC = () => {
               <PhoneCall className="w-5 h-5 text-red-400" />
               Add Custom Emergency Contact
             </h3>
+
+            {contactError && (
+              <div className="p-2.5 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-300 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{contactError}</span>
+              </div>
+            )}
 
             <form onSubmit={handleAddContact} className="space-y-3 text-xs">
               <div>
@@ -479,6 +732,115 @@ export const EmergencyDirectoryView: React.FC = () => {
                   className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold shadow-md shadow-red-950/50"
                 >
                   Save Contact
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Emergency Contact Modal */}
+      {editingContact && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-emerald-400" />
+                <span>Edit Emergency / Inspectorate Contact</span>
+              </h3>
+              <button
+                onClick={() => setEditingContact(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditedContact} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">
+                  Official / Contact Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">
+                  Role / Desk Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editRole}
+                  onChange={e => setEditRole(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">
+                  Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={editPhone}
+                  onChange={e => setEditPhone(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">State</label>
+                  <input
+                    type="text"
+                    value={editState}
+                    onChange={e => setEditState(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">LGA</label>
+                  <input
+                    type="text"
+                    value={editLga}
+                    onChange={e => setEditLga(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Office Address / Notes</label>
+                <textarea
+                  rows={2}
+                  value={editNotes}
+                  onChange={e => setEditNotes(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500 resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingContact(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold shadow-md shadow-red-950/50 flex items-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save Contact Details</span>
                 </button>
               </div>
             </form>

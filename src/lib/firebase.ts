@@ -24,7 +24,7 @@ export async function testConnection(): Promise<boolean> {
     return true;
   } catch (error) {
     if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn('Firebase: client is operating in local offline mode.');
+      console.info('Firebase: client is operating in local offline mode.');
       return false;
     }
     // Expected when test document does not exist yet on server

@@ -14,9 +14,9 @@ import {
   Fingerprint,
   Building2,
   Wallet,
-  ChevronDown,
   ExternalLink
 } from 'lucide-react';
+import { sanitizePlainText } from '../lib/sanitize';
 
 export const ClearanceCdsHubView: React.FC = () => {
   const {
@@ -50,13 +50,15 @@ export const ClearanceCdsHubView: React.FC = () => {
 
   const handleAddCdsLog = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cdsTopic.trim()) return;
+    const cleanTopic = sanitizePlainText(cdsTopic.trim());
+    const cleanNotes = sanitizePlainText(cdsNotes.trim());
+    if (!cleanTopic) return;
 
     addCdsLog({
       meeting_date: cdsDate,
-      topic: cdsTopic.trim(),
-      dues_paid: Number(cdsDues || 0),
-      notes: cdsNotes.trim(),
+      topic: cleanTopic,
+      dues_paid: Math.max(0, Number(cdsDues || 0)),
+      notes: cleanNotes,
       attendance_status: cdsStatus
     });
 
@@ -67,8 +69,9 @@ export const ClearanceCdsHubView: React.FC = () => {
   };
 
   const handleAddNewMonth = () => {
-    if (!newMonthInput.trim()) return;
-    addClearanceMonth(newMonthInput.trim());
+    const cleanMonth = sanitizePlainText(newMonthInput.trim());
+    if (!cleanMonth) return;
+    addClearanceMonth(cleanMonth);
     setNewMonthInput('');
     fireConfetti();
   };

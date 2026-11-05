@@ -171,15 +171,33 @@ export interface UserFeedback {
   created_at: string;
 }
 
+export interface NyscCalendarEvent {
+  id: string;
+  user_id?: string;
+  title: string;
+  description: string;
+  location: string;
+  startDate: string; // ISO string or YYYYMMDDTHHMMSSZ
+  endDate: string;
+  allDay?: boolean;
+  eventType: 'cds' | 'clearance' | 'pop' | 'swearing_in' | 'ppa' | 'custom';
+  recurrenceRule?: string; // e.g. 'RRULE:FREQ=WEEKLY;BYDAY=TH'
+  syncedToGoogle?: boolean;
+  googleCalendarUrl?: string;
+  created_at?: string;
+}
+
 export interface EmergencyContact {
   id: string;
   user_id: string;
   contact_name: string;
-  role_title: string; // e.g. 'LGI Ikeja', 'Hostel Rep', 'Camp Director', 'Police DPO'
+  role_title: string; // e.g. 'LGI Ikeja', 'State Coordinator Office', 'Police DPO'
   phone_number: string;
   is_default: boolean;
   state?: string;
   lga?: string;
+  notes?: string;
+  updated_at?: string;
 }
 
 export interface CampChecklistItem {
@@ -209,20 +227,51 @@ export interface CorperDirectoryMember {
   institution?: string;
 }
 
+export type HousingCategory = 'Corper Lodge' | 'Private Rental' | 'Roommate & Bedspace' | 'PPA Quarters';
+
+export type HousingLodgeType =
+  | 'NCCF Family House'
+  | 'MCAN Corpers Lodge'
+  | 'NACC Catholic Lodge'
+  | 'LGA Quarters'
+  | 'Community Lodge'
+  | 'Private Self-Con'
+  | 'Mini-Flat / Apartment'
+  | 'Roommate / Flatmate Needed'
+  | 'Bedspace Offered'
+  | 'PPA / Staff Quarters'
+  | string;
+
 export interface CorperLodge {
   id: string;
   name: string;
-  lodge_type: 'NCCF Family House' | 'MCAN Corpers Lodge' | 'NACC Catholic Lodge' | 'LGA Quarters' | 'Community Lodge';
+  lodge_type: HousingLodgeType;
+  category?: HousingCategory;
   state: string;
   lga: string;
   address: string;
-  cost_description: string; // e.g. 'Free / Voluntary Token' or '₦30,000 / year'
+  cost_description: string; // e.g. 'Free / Voluntary Token' or '₦120,000 / year'
   amenities: string[];
   caretaker_name: string;
   caretaker_phone: string;
   available_spaces: number;
   notes: string;
+  gender_preference?: 'Any' | 'Male Only' | 'Female Only';
+  is_user_listing?: boolean;
+  posted_by?: string;
+  created_at?: string;
 }
+
+export type StandardVehicleType =
+  | 'BRT Bus'
+  | 'Danfo Yellow Bus'
+  | 'Keke Marwa'
+  | 'Okada / Bike'
+  | 'Shared Taxi'
+  | 'Coaster Shuttle'
+  | 'Interstate Sienna'
+  | 'Water Boat / Ferry'
+  | string;
 
 export interface TransitFareRoute {
   id: string;
@@ -231,7 +280,7 @@ export interface TransitFareRoute {
   route_name: string;
   from_location: string;
   to_location: string;
-  vehicle_type: 'BRT Bus' | 'Danfo Yellow Bus' | 'Keke Marwa' | 'Okada / Bike' | 'Shared Taxi';
+  vehicle_type: StandardVehicleType;
   estimated_fare_range: string;
   commute_tips: string;
   last_verified: string;
