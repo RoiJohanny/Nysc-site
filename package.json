@@ -2,12 +2,12 @@
   "name": "my-nysc-companion",
   "version": "1.0.0",
   "description": "The ultimate companion app for Nigerian corps members: monthly biometric clearance tracking, ₦77,000 alawee financial hub, encrypted document vault, CDS logbook, SAED notes, corper marketplace, and emergency SOS.",
-  "homepage": "https://ais-pre-7usdlfqinfabki23iacm7i-226472253292.europe-west2.run.app",
+  "homepage": "https://roijohanny.github.io/Nysc-site/",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build",
+    "build": "vite build && cp dist/index.html dist/404.html",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
