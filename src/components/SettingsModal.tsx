@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNysc } from '../context/NyscContext';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { usePWAInstall } from '../hooks/usePWAInstall';
-import { NIGERIAN_STATES, CDS_GROUPS } from '../data/mockSeed';
+import { NIGERIAN_STATES, CDS_GROUPS, getLgasForState, getDefaultLgaForState } from '../data/mockSeed';
 import { NyscPhase, FeedbackCategory } from '../types/nysc';
 import { useAuth } from '../context/AuthContext';
 import { PrivacyPolicyModal, TermsOfServiceModal } from './legal/ComplianceModals';
@@ -432,7 +432,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <label className="block text-slate-300 font-semibold mb-1">State of Deployment</label>
                   <select
                     value={stateDeployment}
-                    onChange={e => setStateDeployment(e.target.value)}
+                    onChange={e => {
+                      const newState = e.target.value;
+                      setStateDeployment(newState);
+                      const lgas = getLgasForState(newState);
+                      if (!lgas.includes(lga)) {
+                        setLga(lgas[0] || getDefaultLgaForState(newState));
+                      }
+                    }}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#008751]"
                   >
                     {NIGERIAN_STATES.map(s => (
@@ -443,13 +450,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">LGA of Deployment</label>
-                  <input
-                    type="text"
+                  <select
                     value={lga}
                     onChange={e => setLga(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#008751]"
                     required
-                  />
+                  >
+                    {getLgasForState(stateDeployment).map(l => (
+                      <option key={l} value={l}>{l} LGA</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

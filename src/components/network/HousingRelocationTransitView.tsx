@@ -3,7 +3,9 @@ import { useNysc } from '../../context/NyscContext';
 import {
   RELOCATION_STEPS_GUIDE,
   INITIAL_TRANSIT_ROUTES,
-  NIGERIAN_STATES
+  NIGERIAN_STATES,
+  getLgasForState,
+  getDefaultLgaForState
 } from '../../data/mockSeed';
 import { CorperLodge, TransitFareRoute, HousingCategory, HousingLodgeType } from '../../types/nysc';
 import {
@@ -621,7 +623,14 @@ export const HousingRelocationTransitView: React.FC<HousingRelocationTransitView
                       </label>
                       <select
                         value={newHousingState}
-                        onChange={(e) => setNewHousingState(e.target.value)}
+                        onChange={(e) => {
+                          const nextState = e.target.value;
+                          setNewHousingState(nextState);
+                          const lgas = getLgasForState(nextState);
+                          if (!lgas.includes(newHousingLga)) {
+                            setNewHousingLga(lgas[0] || getDefaultLgaForState(nextState));
+                          }
+                        }}
                         className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#008751]"
                       >
                         {NIGERIAN_STATES.map(s => (
@@ -632,16 +641,18 @@ export const HousingRelocationTransitView: React.FC<HousingRelocationTransitView
 
                     <div>
                       <label className="block text-slate-300 font-semibold mb-1">
-                        LGA / City
+                        LGA / Area
                       </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Ikeja, Surulere, Garki..."
+                      <select
                         value={newHousingLga}
                         onChange={(e) => setNewHousingLga(e.target.value)}
                         className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#008751]"
                         required
-                      />
+                      >
+                        {getLgasForState(newHousingState).map(l => (
+                          <option key={l} value={l}>{l} LGA</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 

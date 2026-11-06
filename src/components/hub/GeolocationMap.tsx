@@ -49,6 +49,38 @@ interface RouteStep {
   distance: string;
 }
 
+const isMapValid = (map: L.Map | null): map is L.Map => {
+  if (!map) return false;
+  try {
+    const pane = (map as any)._mapPane;
+    const container = map.getContainer();
+    return Boolean(pane && container && container.parentElement);
+  } catch {
+    return false;
+  }
+};
+
+const safeFitBounds = (map: L.Map | null, bounds: L.LatLngBounds, options?: L.FitBoundsOptions) => {
+  if (!isMapValid(map)) return;
+  try {
+    const container = map.getContainer();
+    if (container && container.clientWidth > 0 && container.clientHeight > 0) {
+      map.fitBounds(bounds, options);
+    }
+  } catch (err) {
+    console.warn('safeFitBounds safely caught error:', err);
+  }
+};
+
+const safeSetView = (map: L.Map | null, center: L.LatLngExpression, zoom?: number) => {
+  if (!isMapValid(map)) return;
+  try {
+    map.setView(center, zoom);
+  } catch (err) {
+    console.warn('safeSetView safely caught error:', err);
+  }
+};
+
 export const GeolocationMap: React.FC<GeolocationMapProps> = ({
   stateName,
   lgaName,
@@ -74,6 +106,8 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
   const userMarkerRef = useRef<L.Marker | null>(null);
   const ppaMarkerRef = useRef<L.Marker | null>(null);
   const cdsMarkerRef = useRef<L.Marker | null>(null);
+  const isMountedRef = useRef<boolean>(true);
+  const routeSeqRef = useRef<number>(0);
 
   // Normalize and validate coordinates (prevent 0, NaN, or null values from breaking pin placement)
   const validPpaLat = (typeof ppaLat === 'number' && !isNaN(ppaLat) && ppaLat !== 0) ? ppaLat : 6.5925;
@@ -141,10 +175,15 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
     end: [number, number],
     label: string
   ) => {
-    if (!leafletMapRef.current || !routeLayerGroupRef.current) return;
+    if (!isMountedRef.current || !leafletMapRef.current || !routeLayerGroupRef.current) return;
     const map = leafletMapRef.current;
     const layerGroup = routeLayerGroupRef.current;
-    layerGroup.clearLayers();
+    if (!isMapValid(map)) return;
+
+    const currentSeq = ++routeSeqRef.current;
+    try {
+      layerGroup.clearLayers();
+    } catch {}
 
     setIsLoadingRoute(true);
 
@@ -176,6 +215,17 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
       // Safe fallback if offline or request blocked
     }
 
+    // Guard: ignore stale async result if unmounted, replaced, or map destroyed
+    if (
+      !isMountedRef.current ||
+      currentSeq !== routeSeqRef.current ||
+      !leafletMapRef.current ||
+      leafletMapRef.current !== map ||
+      !isMapValid(map)
+    ) {
+      return;
+    }
+
     // Fallback direct connected line if OSRM failed
     if (routeCoords.length === 0) {
       routeCoords = [start, end];
@@ -191,42 +241,46 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
     setRouteSteps(extractedSteps);
     setIsLoadingRoute(false);
 
-    // 1. Shadow / Glow outline
-    const glowLine = L.polyline(routeCoords, {
-      color: '#0f172a',
-      weight: 8,
-      opacity: 0.6,
-      lineCap: 'round',
-      lineJoin: 'round'
-    });
-    layerGroup.addLayer(glowLine);
+    try {
+      // 1. Shadow / Glow outline
+      const glowLine = L.polyline(routeCoords, {
+        color: '#0f172a',
+        weight: 8,
+        opacity: 0.6,
+        lineCap: 'round',
+        lineJoin: 'round'
+      });
+      layerGroup.addLayer(glowLine);
 
-    // 2. Vibrant emerald/green primary direction path
-    const mainLine = L.polyline(routeCoords, {
-      color: '#008751',
-      weight: 5,
-      opacity: 0.95,
-      lineCap: 'round',
-      lineJoin: 'round',
-      dashArray: routeCoords.length === 2 ? '8, 8' : undefined
-    });
+      // 2. Vibrant emerald/green primary direction path
+      const mainLine = L.polyline(routeCoords, {
+        color: '#008751',
+        weight: 5,
+        opacity: 0.95,
+        lineCap: 'round',
+        lineJoin: 'round',
+        dashArray: routeCoords.length === 2 ? '8, 8' : undefined
+      });
 
-    mainLine.bindPopup(`
-      <div style="font-family: system-ui, sans-serif; font-size: 12px; line-height: 1.4; color: #0f172a; padding: 2px;">
-        <div style="font-size: 10px; font-weight: 800; color: #008751; text-transform: uppercase;">🗺️ Commute Route</div>
-        <div style="font-weight: 700; margin-top: 2px;">${label}</div>
-        <div style="color: #047857; font-weight: 600; font-size: 11px; margin-top: 2px;">
-          Distance: ${calculatedKm} km • ~${calculatedMins} mins
+      mainLine.bindPopup(`
+        <div style="font-family: system-ui, sans-serif; font-size: 12px; line-height: 1.4; color: #0f172a; padding: 2px;">
+          <div style="font-size: 10px; font-weight: 800; color: #008751; text-transform: uppercase;">🗺️ Commute Route</div>
+          <div style="font-weight: 700; margin-top: 2px;">${label}</div>
+          <div style="color: #047857; font-weight: 600; font-size: 11px; margin-top: 2px;">
+            Distance: ${calculatedKm} km • ~${calculatedMins} mins
+          </div>
         </div>
-      </div>
-    `);
+      `);
 
-    layerGroup.addLayer(mainLine);
+      layerGroup.addLayer(mainLine);
 
-    // Fit map bounds to show route AND both markers with padding
-    const allPoints: [number, number][] = [...routeCoords, [validPpaLat, validPpaLng], [validCdsLat, validCdsLng]];
-    const bounds = L.latLngBounds(allPoints);
-    map.fitBounds(bounds, { padding: [60, 60] });
+      // Fit map bounds safely to show route AND both markers with padding
+      const allPoints: [number, number][] = [...routeCoords, [validPpaLat, validPpaLng], [validCdsLat, validCdsLng]];
+      const bounds = L.latLngBounds(allPoints);
+      safeFitBounds(map, bounds, { padding: [60, 60] });
+    } catch (err) {
+      console.warn('Error applying route polyline to map:', err);
+    }
   }, [calculateDistanceKm, validPpaLat, validPpaLng, validCdsLat, validCdsLng]);
 
   // Initialize Leaflet Map once
@@ -355,27 +409,37 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
       [validPpaLat, validPpaLng],
       [validCdsLat, validCdsLng]
     ]);
-    map.fitBounds(initialBounds, { padding: [60, 60] });
+    safeFitBounds(map, initialBounds, { padding: [60, 60] });
 
-    // Render initial directions route between PPA and CDS
-    renderDirectionsRoute([validPpaLat, validPpaLng], [validCdsLat, validCdsLng], 'PPA to CDS Venue');
-
-    // Handle container resize
+    // Handle container resize safely
     const resizeTimer = setTimeout(() => {
-      map.invalidateSize();
+      if (isMountedRef.current && isMapValid(map)) {
+        try {
+          map.invalidateSize();
+        } catch {}
+      }
     }, 200);
 
     return () => {
+      isMountedRef.current = false;
+      routeSeqRef.current++;
       clearTimeout(resizeTimer);
-      map.remove();
+      try {
+        map.remove();
+      } catch (err) {
+        console.warn('Map cleanup safely handled:', err);
+      }
       leafletMapRef.current = null;
       routeLayerGroupRef.current = null;
+      ppaMarkerRef.current = null;
+      cdsMarkerRef.current = null;
+      userMarkerRef.current = null;
     };
   }, []); // Run once on mount
 
   // Update existing markers and route in-place when coordinates change
   useEffect(() => {
-    if (!leafletMapRef.current) return;
+    if (!leafletMapRef.current || !isMapValid(leafletMapRef.current)) return;
     const map = leafletMapRef.current;
 
     // Update PPA Marker position & tooltip
@@ -418,12 +482,14 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
         setIsLocating(false);
         setLocationStatus(`GPS fixed: ${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E (±${Math.round(accuracy)}m)`);
 
-        if (leafletMapRef.current) {
+        if (leafletMapRef.current && isMapValid(leafletMapRef.current)) {
           const map = leafletMapRef.current;
 
           // Remove previous live user marker if any
           if (userMarkerRef.current) {
-            userMarkerRef.current.remove();
+            try {
+              userMarkerRef.current.remove();
+            } catch {}
           }
 
           // Custom Cyan/Purple Pulsing Marker for Live Corper Location
@@ -511,9 +577,11 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
 
       // 2. Update local marker position immediately on the Leaflet map
       if (cdsMarkerRef.current) {
-        cdsMarkerRef.current.setLatLng([lat, lng]);
-        cdsMarkerRef.current.setTooltipContent(`🟢 CDS: ${cdsGroup} (${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E)`);
-        cdsMarkerRef.current.openPopup();
+        try {
+          cdsMarkerRef.current.setLatLng([lat, lng]);
+          cdsMarkerRef.current.setTooltipContent(`🟢 CDS: ${cdsGroup} (${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E)`);
+          cdsMarkerRef.current.openPopup();
+        } catch {}
       }
 
       setIsUpdatingCdsGps(false);
@@ -557,31 +625,39 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
   // Focus on PPA pin
   const handleFocusPpa = () => {
     setActiveMarker('ppa');
-    if (leafletMapRef.current && ppaMarkerRef.current) {
-      leafletMapRef.current.setView([validPpaLat, validPpaLng], 15);
-      ppaMarkerRef.current.openPopup();
+    if (leafletMapRef.current && isMapValid(leafletMapRef.current)) {
+      safeSetView(leafletMapRef.current, [validPpaLat, validPpaLng], 15);
+      if (ppaMarkerRef.current) {
+        try {
+          ppaMarkerRef.current.openPopup();
+        } catch {}
+      }
     }
   };
 
   // Focus on CDS pin
   const handleFocusCds = () => {
     setActiveMarker('cds');
-    if (leafletMapRef.current && cdsMarkerRef.current) {
-      leafletMapRef.current.setView([validCdsLat, validCdsLng], 15);
-      cdsMarkerRef.current.openPopup();
+    if (leafletMapRef.current && isMapValid(leafletMapRef.current)) {
+      safeSetView(leafletMapRef.current, [validCdsLat, validCdsLng], 15);
+      if (cdsMarkerRef.current) {
+        try {
+          cdsMarkerRef.current.openPopup();
+        } catch {}
+      }
     }
   };
 
   // Fit bounds to show all markers
   const handleFitAll = () => {
     setActiveMarker(null);
-    if (leafletMapRef.current) {
+    if (leafletMapRef.current && isMapValid(leafletMapRef.current)) {
       const points: [number, number][] = [[validPpaLat, validPpaLng], [validCdsLat, validCdsLng]];
       if (userLocation) {
         points.push([userLocation.lat, userLocation.lng]);
       }
       const bounds = L.latLngBounds(points);
-      leafletMapRef.current.fitBounds(bounds, { padding: [60, 60] });
+      safeFitBounds(leafletMapRef.current, bounds, { padding: [60, 60] });
     }
   };
 
@@ -880,9 +956,13 @@ export const GeolocationMap: React.FC<GeolocationMapProps> = ({
             <button
               onClick={() => {
                 setActiveMarker('user');
-                if (leafletMapRef.current && userMarkerRef.current) {
-                  leafletMapRef.current.setView([userLocation.lat, userLocation.lng], 15);
-                  userMarkerRef.current.openPopup();
+                if (leafletMapRef.current && isMapValid(leafletMapRef.current)) {
+                  safeSetView(leafletMapRef.current, [userLocation.lat, userLocation.lng], 15);
+                  if (userMarkerRef.current) {
+                    try {
+                      userMarkerRef.current.openPopup();
+                    } catch {}
+                  }
                 }
               }}
               className="px-2.5 py-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 text-purple-300 border border-purple-500/40 text-[11px] font-bold flex items-center gap-1 backdrop-blur-md shadow-md transition-all"

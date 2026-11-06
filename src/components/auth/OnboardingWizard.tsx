@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNysc } from '../../context/NyscContext';
-import { NIGERIAN_STATES } from '../../data/mockSeed';
+import { NIGERIAN_STATES, getLgasForState, getDefaultLgaForState } from '../../data/mockSeed';
 import { NyscPhase } from '../../types/nysc';
 import {
   Sparkles,
@@ -28,6 +28,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
   // Step 1 fields
   const [fullName, setFullName] = useState(user?.full_name || 'Chinedu Emmanuel Adeleke');
   const [stateOfDeployment, setStateOfDeployment] = useState('Lagos');
+  const [lga, setLga] = useState(() => getDefaultLgaForState('Lagos'));
   const [batchStream, setBatchStream] = useState('2026 Batch A Stream 1');
 
   // Step 2 field
@@ -98,6 +99,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
     updateProfile({
       full_name: fullName.trim(),
       state_of_deployment: stateOfDeployment,
+      lga: lga,
       batch_stream: batchStream,
       current_phase: selectedPhase,
       state_code: generatedCode
@@ -179,21 +181,48 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }
                   />
                 </div>
 
-                <div>
-                  <label className="block text-slate-300 font-semibold mb-1">
-                    State of Deployment
-                  </label>
-                  <select
-                    value={stateOfDeployment}
-                    onChange={e => setStateOfDeployment(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#008751]"
-                  >
-                    {NIGERIAN_STATES.map(state => (
-                      <option key={state} value={state}>
-                        {state} State
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-slate-300 font-semibold mb-1">
+                      State of Deployment
+                    </label>
+                    <select
+                      value={stateOfDeployment}
+                      onChange={e => {
+                        const newState = e.target.value;
+                        setStateOfDeployment(newState);
+                        const lgas = getLgasForState(newState);
+                        if (!lgas.includes(lga)) {
+                          setLga(lgas[0] || getDefaultLgaForState(newState));
+                        }
+                      }}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#008751]"
+                    >
+                      {NIGERIAN_STATES.map(state => (
+                        <option key={state} value={state}>
+                          {state} State
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-300 font-semibold mb-1">
+                      Local Govt Area (LGA)
+                    </label>
+                    <select
+                      value={lga}
+                      onChange={e => setLga(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-[#008751]"
+                      required
+                    >
+                      {getLgasForState(stateOfDeployment).map(l => (
+                        <option key={l} value={l}>
+                          {l} LGA
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div>

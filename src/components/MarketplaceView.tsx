@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNysc } from '../context/NyscContext';
 import { MarketplaceItem } from '../types/nysc';
-import { NIGERIAN_STATES } from '../data/mockSeed';
+import { NIGERIAN_STATES, getLgasForState, getDefaultLgaForState } from '../data/mockSeed';
 import {
   ShoppingBag,
   Plus,
@@ -583,7 +583,7 @@ export const MarketplaceView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
                     Category
@@ -603,15 +603,44 @@ export const MarketplaceView: React.FC = () => {
 
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">
+                    State
+                  </label>
+                  <select
+                    value={state}
+                    onChange={(e) => {
+                      const nextState = e.target.value;
+                      setState(nextState);
+                      const lgas = getLgasForState(nextState);
+                      if (!lgas.includes(lga)) {
+                        setLga(lgas[0] || getDefaultLgaForState(nextState));
+                      }
+                    }}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                  >
+                    {NIGERIAN_STATES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">
                     LGA (Pickup Area)
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={lga}
                     onChange={(e) => setLga(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
                     required
-                  />
+                  >
+                    {getLgasForState(state).map((l) => (
+                      <option key={l} value={l}>
+                        {l} LGA
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

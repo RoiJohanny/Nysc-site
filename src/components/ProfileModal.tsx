@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNysc } from '../context/NyscContext';
-import { NIGERIAN_STATES, CDS_GROUPS } from '../data/mockSeed';
+import { NIGERIAN_STATES, CDS_GROUPS, getLgasForState, getDefaultLgaForState } from '../data/mockSeed';
 import { NyscPhase } from '../types/nysc';
 import {
   User,
@@ -337,7 +337,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 </label>
                 <select
                   value={stateDeployment}
-                  onChange={e => setStateDeployment(e.target.value)}
+                  onChange={e => {
+                    const newState = e.target.value;
+                    setStateDeployment(newState);
+                    const lgas = getLgasForState(newState);
+                    if (!lgas.includes(lga)) {
+                      setLga(lgas[0] || getDefaultLgaForState(newState));
+                    }
+                  }}
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
                 >
                   {NIGERIAN_STATES.map(s => (
@@ -350,13 +357,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 <label className="block text-slate-300 font-semibold mb-1">
                   Local Govt Area (LGA)
                 </label>
-                <input
-                  type="text"
+                <select
                   value={lga}
                   onChange={e => setLga(e.target.value)}
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
                   required
-                />
+                >
+                  {getLgasForState(stateDeployment).map(l => (
+                    <option key={l} value={l}>{l} LGA</option>
+                  ))}
+                </select>
               </div>
             </div>
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNysc } from '../context/NyscContext';
-import { CORPS_MEMBERS_DIRECTORY, NIGERIAN_STATES } from '../data/mockSeed';
+import { CORPS_MEMBERS_DIRECTORY, NIGERIAN_STATES, getLgasForState, getDefaultLgaForState } from '../data/mockSeed';
 import { EmergencyContact, UserFeedback } from '../types/nysc';
 import {
   ShieldAlert,
@@ -799,21 +799,34 @@ export const EmergencyDirectoryView: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">State</label>
-                  <input
-                    type="text"
+                  <select
                     value={editState}
-                    onChange={e => setEditState(e.target.value)}
+                    onChange={e => {
+                      const nextState = e.target.value;
+                      setEditState(nextState);
+                      const lgas = getLgasForState(nextState);
+                      if (!lgas.includes(editLga)) {
+                        setEditLga(lgas[0] || getDefaultLgaForState(nextState));
+                      }
+                    }}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500"
-                  />
+                  >
+                    {NIGERIAN_STATES.map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">LGA</label>
-                  <input
-                    type="text"
+                  <select
                     value={editLga}
                     onChange={e => setEditLga(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500"
-                  />
+                  >
+                    {getLgasForState(editState).map(l => (
+                      <option key={l} value={l}>{l} LGA</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

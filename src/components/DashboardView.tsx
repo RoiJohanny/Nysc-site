@@ -240,10 +240,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
               </div>
 
               <span className="text-slate-400 text-xs hidden sm:inline">•</span>
-              <span className="text-xs text-slate-300 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-rose-400" />
-                <span>{profile.state_of_deployment} ({profile.lga} LGA)</span>
-              </span>
+              <button
+                type="button"
+                onClick={onOpenProfile}
+                title="Click to select State or LGA of deployment"
+                className="text-xs text-slate-300 hover:text-white flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 transition-colors group cursor-pointer"
+              >
+                <MapPin className="w-3.5 h-3.5 text-rose-400 group-hover:scale-110 transition-transform" />
+                <span className="font-medium">{profile.state_of_deployment} ({profile.lga} LGA)</span>
+                <span className="text-[10px] text-slate-400 group-hover:text-emerald-400 ml-0.5">✎</span>
+              </button>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">

@@ -29,6 +29,15 @@ export const NIGERIAN_STATES = [
   'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'
 ];
 
+export {
+  NIGERIAN_STATE_LGAS,
+  getLgasForState,
+  getDefaultLgaForState,
+  isValidLgaForState,
+  normalizeStateName
+} from './nigerianLgas';
+
+
 export const STATE_COORDINATES: Record<string, [number, number]> = {
   'Abia': [5.5249, 7.4943],
   'Adamawa': [9.2003, 12.4953],

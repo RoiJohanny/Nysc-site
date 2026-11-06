@@ -23,7 +23,7 @@ import {
 export const CorperDirectoryView: React.FC = () => {
   const { profile } = useNysc();
 
-  const [filterMode, setFilterMode] = useState<'state' | 'ppa' | 'cds' | 'all'>('state');
+  const [filterMode, setFilterMode] = useState<'lga' | 'state' | 'ppa' | 'cds' | 'all'>('state');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMember, setSelectedMember] = useState<CorperDirectoryMember | null>(null);
 
@@ -31,12 +31,15 @@ export const CorperDirectoryView: React.FC = () => {
   const cleanStr = (s?: string) => (s || '').toLowerCase().trim();
 
   const userState = cleanStr(profile.state_of_deployment || 'Lagos');
+  const userLga = cleanStr(profile.lga || 'Ikeja');
   const userPpa = cleanStr(profile.ppa_name || 'Government Senior Model College');
   const userCds = cleanStr(profile.cds_group || 'Education & Literacy CDS');
 
   const filteredMembers = CORPS_MEMBERS_DIRECTORY.filter((member) => {
     // 1. Filter Toggle matching
-    if (filterMode === 'state') {
+    if (filterMode === 'lga') {
+      if (cleanStr(member.state) !== userState || !cleanStr(member.lga).includes(userLga)) return false;
+    } else if (filterMode === 'state') {
       if (cleanStr(member.state) !== userState) return false;
     } else if (filterMode === 'ppa') {
       const memberPpa = cleanStr(member.ppa);
@@ -108,6 +111,18 @@ export const CorperDirectoryView: React.FC = () => {
           
           {/* Filter Toggles: In My State, In My PPA, In My CDS, All */}
           <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setFilterMode('lga')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                filterMode === 'lga'
+                  ? 'bg-[#008751] text-white shadow-md shadow-[#008751]/30'
+                  : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300 border border-slate-700/60'
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>In My LGA ({profile.lga} LGA)</span>
+            </button>
+
             <button
               onClick={() => setFilterMode('state')}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${

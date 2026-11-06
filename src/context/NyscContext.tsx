@@ -42,6 +42,7 @@ import {
   INITIAL_WEBHOOK_LOGS,
   INITIAL_CORPER_LODGES
 } from '../data/mockSeed';
+import { isValidLgaForState, getDefaultLgaForState } from '../data/nigerianLgas';
 import { generateStateEmergencyContacts } from '../data/stateEmergencyDirectory';
 import { generateDefaultNyscEvents } from '../lib/googleCalendar';
 
@@ -128,7 +129,15 @@ function saveStorage<T>(key: string, data: T) {
 }
 
 export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [profile, setProfile] = useState<Profile>(() => loadStorage('profile', INITIAL_PROFILE));
+  const [profile, setProfile] = useState<Profile>(() => {
+    const loaded = loadStorage('profile', INITIAL_PROFILE);
+    if (loaded && loaded.state_of_deployment) {
+      if (!loaded.lga || !isValidLgaForState(loaded.state_of_deployment, loaded.lga)) {
+        loaded.lga = getDefaultLgaForState(loaded.state_of_deployment);
+      }
+    }
+    return loaded;
+  });
   const [locationSchedule, setLocationSchedule] = useState<LocationSchedule>(() =>
     loadStorage('location', INITIAL_LOCATION_SCHEDULE)
   );
@@ -215,7 +224,30 @@ export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = (data: Partial<Profile>) => {
     setProfile(prev => {
-      const updated = { ...prev, ...data, updated_at: new Date().toISOString() };
+      const targetState = data.state_of_deployment || prev.state_of_deployment;
+      let targetLga = data.lga !== undefined ? data.lga : prev.lga;
+
+      // If state changed and LGA is either missing or invalid for that state, pick default LGA for the state
+      if (data.state_of_deployment && (!data.lga || !isValidLgaForState(targetState, targetLga))) {
+        targetLga = getDefaultLgaForState(targetState);
+      }
+
+      const updated = {
+        ...prev,
+        ...data,
+        state_of_deployment: targetState,
+        lga: targetLga,
+        updated_at: new Date().toISOString()
+      };
+
+      if (data.state_of_deployment || data.lga) {
+        setEmergencyContacts(currentContacts => {
+          const fresh = generateStateEmergencyContacts(targetState, targetLga, prev.id);
+          const customOnly = currentContacts.filter(c => !c.is_default);
+          return [...fresh, ...customOnly];
+        });
+      }
+
       try {
         setDoc(doc(db, 'profiles', updated.id), updated, { merge: true }).catch(() => {});
       } catch {
