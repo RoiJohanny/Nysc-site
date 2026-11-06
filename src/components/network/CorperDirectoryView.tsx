@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 export const CorperDirectoryView: React.FC = () => {
-  const { profile } = useNysc();
+  const { profile, directoryMembers } = useNysc();
 
   const [filterMode, setFilterMode] = useState<'lga' | 'state' | 'ppa' | 'cds' | 'all'>('state');
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,7 +35,12 @@ export const CorperDirectoryView: React.FC = () => {
   const userPpa = cleanStr(profile.ppa_name || 'Government Senior Model College');
   const userCds = cleanStr(profile.cds_group || 'Education & Literacy CDS');
 
-  const filteredMembers = CORPS_MEMBERS_DIRECTORY.filter((member) => {
+  const membersSource = directoryMembers || CORPS_MEMBERS_DIRECTORY;
+
+  const filteredMembers = membersSource.filter((member) => {
+    // Hide suspended accounts unless viewer is admin
+    if (member.is_suspended && !profile.is_admin) return false;
+
     // 1. Filter Toggle matching
     if (filterMode === 'lga') {
       if (cleanStr(member.state) !== userState || !cleanStr(member.lga).includes(userLga)) return false;

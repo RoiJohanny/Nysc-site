@@ -46,6 +46,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
     switchPhase,
     locationSchedule,
     financials,
+    trackerConfig,
     updateFinancials,
     expenses,
     addExpense,
@@ -894,7 +895,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigateTab, onO
                 <span>Monthly Biometric Clearance Checklist ({currentMonthKey})</span>
               </h3>
               <p className="text-xs text-slate-400">
-                Thumbprint biometric clearance opens 1st - 25th monthly.
+                Thumbprint biometric clearance opens {trackerConfig?.biometric_start_day || 1}st - {trackerConfig?.biometric_deadline_day || 25}th monthly.
               </p>
             </div>
             <button

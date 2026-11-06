@@ -25,7 +25,7 @@ import { usePWAInstall } from './hooks/usePWAInstall';
 
 function AppContent() {
   const { isAuthenticated, isOnboarded } = useAuth();
-  const { profile } = useNysc();
+  const { profile, brandingConfig } = useNysc();
   const { isOnline } = useOnlineStatus();
   const { isInstallable, isInstalled, install } = usePWAInstall();
 
@@ -34,33 +34,73 @@ function AppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSosOpen, setIsSosOpen] = useState(false);
+  const [dismissedNoticeIds, setDismissedNoticeIds] = useState<string[]>([]);
 
-  // Hash-based routing for /admin
+  // Hash & Path-based routing for /admin with strict is_admin verification
   const [isAdminView, setIsAdminView] = useState<boolean>(() => {
-    return (
-      typeof window !== 'undefined' &&
-      (window.location.hash === '#/admin' || window.location.hash === '#admin')
-    );
+    if (typeof window === 'undefined') return false;
+    const isNavigatingAdmin =
+      window.location.hash === '#/admin' ||
+      window.location.hash === '#admin' ||
+      window.location.pathname === '/admin';
+
+    // Must be both authenticated and have is_admin === true
+    if (isNavigatingAdmin && isAuthenticated && profile.is_admin) {
+      return true;
+    }
+    return false;
   });
 
+  // Strict route protection guard: immediately redirect standard corpers or unauthenticated users to /dashboard
   useEffect(() => {
-    const handleHashChange = () => {
-      setIsAdminView(
-        window.location.hash === '#/admin' || window.location.hash === '#admin'
-      );
+    const enforceRouteProtection = () => {
+      const isNavigatingAdmin =
+        window.location.hash === '#/admin' ||
+        window.location.hash === '#admin' ||
+        window.location.pathname === '/admin';
+
+      if (isNavigatingAdmin) {
+        if (!isAuthenticated || !profile.is_admin) {
+          // Immediately redirect unauthorized access to /dashboard
+          if (window.location.pathname === '/admin') {
+            window.history.replaceState(null, '', '/dashboard');
+          }
+          window.location.hash = '#/dashboard';
+          setIsAdminView(false);
+          setActiveTab('home');
+        } else {
+          setIsAdminView(true);
+        }
+      } else {
+        if (isAdminView) {
+          setIsAdminView(false);
+        }
+      }
     };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+
+    enforceRouteProtection();
+    window.addEventListener('hashchange', enforceRouteProtection);
+    window.addEventListener('popstate', enforceRouteProtection);
+    return () => {
+      window.removeEventListener('hashchange', enforceRouteProtection);
+      window.removeEventListener('popstate', enforceRouteProtection);
+    };
+  }, [isAuthenticated, profile.is_admin, isAdminView]);
 
   const openAdminView = () => {
-    window.location.hash = '#/admin';
-    setIsAdminView(true);
+    if (profile.is_admin) {
+      window.location.hash = '#/admin';
+      setIsAdminView(true);
+    } else {
+      window.location.hash = '#/dashboard';
+      setIsAdminView(false);
+    }
   };
 
   const closeAdminView = () => {
-    window.location.hash = '';
+    window.location.hash = '#/dashboard';
     setIsAdminView(false);
+    setActiveTab('home');
   };
 
 
@@ -148,6 +188,44 @@ function AppContent() {
             <Download className="w-3.5 h-3.5" />
             <span>Install App</span>
           </button>
+        </div>
+      )}
+
+      {/* Active Broadcast Directives from Admin */}
+      {!isAdminView && brandingConfig?.notices && (
+        <div className="max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-3 space-y-2">
+          {brandingConfig.notices
+            .filter(n => n.is_active && !dismissedNoticeIds.includes(n.id))
+            .slice(0, 2)
+            .map(n => {
+              const bg =
+                n.notice_type === 'urgent'
+                  ? 'bg-red-500/15 border-red-500/40 text-red-200'
+                  : n.notice_type === 'warning'
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-200'
+                  : n.notice_type === 'success'
+                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
+                  : 'bg-blue-500/15 border-blue-500/40 text-blue-200';
+
+              return (
+                <div
+                  key={n.id}
+                  className={`p-3 rounded-2xl border flex items-center justify-between gap-3 text-xs shadow-md ${bg}`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-extrabold shrink-0">{n.title}:</span>
+                    <span className="opacity-90 truncate">{n.message}</span>
+                  </div>
+                  <button
+                    onClick={() => setDismissedNoticeIds(prev => [...prev, n.id])}
+                    className="p-1 rounded-lg hover:bg-white/10 shrink-0 text-white/70 hover:text-white"
+                    title="Dismiss notice"
+                  >
+                    ✕
+                  </button>
+                </div>
+              );
+            })}
         </div>
       )}
 

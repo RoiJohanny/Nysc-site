@@ -157,6 +157,7 @@ export const MarketplaceView: React.FC = () => {
   };
 
   const filteredItems = marketplaceItems.filter((item) => {
+    if (item.is_taken_down && !profile.is_admin) return false;
     const matchesState = selectedState === 'All' || item.state.toLowerCase() === selectedState.toLowerCase();
     const matchesLga = selectedLga === 'All' || item.lga.toLowerCase() === selectedLga.toLowerCase();
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;

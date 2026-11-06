@@ -130,6 +130,8 @@ export interface MarketplaceItem {
   seller_phone: string;
   images: string[];
   is_sold: boolean;
+  is_taken_down?: boolean;
+  takedown_reason?: string;
   created_at: string;
 }
 
@@ -225,6 +227,8 @@ export interface CorperDirectoryMember {
   skills: string[];
   bio?: string;
   institution?: string;
+  is_suspended?: boolean;
+  suspension_reason?: string;
 }
 
 export type HousingCategory = 'Corper Lodge' | 'Private Rental' | 'Roommate & Bedspace' | 'PPA Quarters';
@@ -316,4 +320,73 @@ export interface WebhookLogItem {
   timestamp: string;
   latency_ms: number;
 }
+
+export interface BroadcastNotice {
+  id: string;
+  title: string;
+  message: string;
+  notice_type: 'info' | 'warning' | 'urgent' | 'success';
+  target_audience: 'all' | 'pcm' | 'camp' | 'active' | 'pop' | string;
+  is_active: boolean;
+  author: string;
+  created_at: string;
+  expires_at?: string;
+}
+
+export interface AdminBrandingConfig {
+  app_logo_url: string;
+  app_name: string;
+  custom_tagline?: string;
+  notices: BroadcastNotice[];
+}
+
+export interface AdminTrackerConfig {
+  biometric_start_day: number;
+  biometric_deadline_day: number;
+  require_ppa_letter: boolean;
+  require_lgi_approval: boolean;
+  min_monthly_cds_attendance: number;
+  standard_cds_dues: number;
+  default_federal_alawee: number;
+  state_allowances: Record<string, number>;
+  batch_streams: string[];
+  default_cds_meeting_day: string;
+  default_cds_meeting_time: string;
+}
+
+export interface SosEmergencyLog {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_phone: string;
+  state_code?: string;
+  state: string;
+  lga: string;
+  emergency_type: 'security_threat' | 'medical_emergency' | 'transit_accident' | 'accommodation_distress' | 'drill_exhaustion' | 'general';
+  latitude?: number;
+  longitude?: number;
+  details?: string;
+  status: 'active' | 'dispatched' | 'resolved';
+  dispatch_notes?: string;
+  created_at: string;
+  resolved_at?: string;
+}
+
+export interface AdminUserRecord {
+  id: string;
+  full_name: string;
+  phone: string;
+  email?: string;
+  state_code?: string;
+  state_of_deployment: string;
+  lga: string;
+  batch_stream: string;
+  current_phase: NyscPhase;
+  is_admin: boolean;
+  is_banned: boolean;
+  ban_reason?: string;
+  is_directory_visible: boolean;
+  created_at: string;
+}
+
 

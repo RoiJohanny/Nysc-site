@@ -21,7 +21,13 @@ import {
   WebhookConfig,
   WebhookLogItem,
   CorperLodge,
-  NyscCalendarEvent
+  NyscCalendarEvent,
+  AdminBrandingConfig,
+  AdminTrackerConfig,
+  SosEmergencyLog,
+  AdminUserRecord,
+  BroadcastNotice,
+  CorperDirectoryMember
 } from '../types/nysc';
 import {
   INITIAL_PROFILE,
@@ -40,7 +46,12 @@ import {
   INITIAL_USER_FEEDBACK,
   INITIAL_WEBHOOK_CONFIG,
   INITIAL_WEBHOOK_LOGS,
-  INITIAL_CORPER_LODGES
+  INITIAL_CORPER_LODGES,
+  INITIAL_BRANDING_CONFIG,
+  INITIAL_TRACKER_CONFIG,
+  INITIAL_SOS_LOGS,
+  INITIAL_ADMIN_USERS,
+  CORPS_MEMBERS_DIRECTORY
 } from '../data/mockSeed';
 import { isValidLgaForState, getDefaultLgaForState } from '../data/nigerianLgas';
 import { generateStateEmergencyContacts } from '../data/stateEmergencyDirectory';
@@ -106,6 +117,27 @@ interface NyscContextType {
   deleteUserAccountAndData: () => void;
   resetToDefaultData: () => void;
   fireConfetti: () => void;
+  // Admin Branding
+  brandingConfig: AdminBrandingConfig;
+  updateBrandingConfig: (data: Partial<AdminBrandingConfig>) => void;
+  addBroadcastNotice: (notice: Omit<BroadcastNotice, 'id' | 'created_at'>) => void;
+  updateBroadcastNotice: (id: string, data: Partial<BroadcastNotice>) => void;
+  deleteBroadcastNotice: (id: string) => void;
+  // Admin Tracker Config
+  trackerConfig: AdminTrackerConfig;
+  updateTrackerConfig: (data: Partial<AdminTrackerConfig>) => void;
+  // Admin Emergency SOS Logs
+  sosEmergencyLogs: SosEmergencyLog[];
+  addSosEmergencyLog: (log: Omit<SosEmergencyLog, 'id' | 'created_at'>) => void;
+  updateSosEmergencyLog: (id: string, data: Partial<SosEmergencyLog>) => void;
+  // Admin Security & Users
+  adminUsers: AdminUserRecord[];
+  toggleUserBan: (userId: string, reason?: string) => void;
+  toggleUserAdminRole: (userId: string) => void;
+  // Admin Content Moderation
+  toggleMarketplaceTakedown: (itemId: string, reason?: string) => void;
+  directoryMembers: CorperDirectoryMember[];
+  toggleDirectorySuspension: (memberId: string, reason?: string) => void;
 }
 
 const NyscContext = createContext<NyscContextType | undefined>(undefined);
@@ -189,6 +221,26 @@ export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [webhookLogs, setWebhookLogs] = useState<WebhookLogItem[]>(() =>
     loadStorage('webhook_logs', INITIAL_WEBHOOK_LOGS)
   );
+  // Admin Branding Config
+  const [brandingConfig, setBrandingConfig] = useState<AdminBrandingConfig>(() =>
+    loadStorage('branding_config', INITIAL_BRANDING_CONFIG)
+  );
+  // Admin Tracker Config
+  const [trackerConfig, setTrackerConfig] = useState<AdminTrackerConfig>(() =>
+    loadStorage('tracker_config', INITIAL_TRACKER_CONFIG)
+  );
+  // Admin Emergency SOS Logs
+  const [sosEmergencyLogs, setSosEmergencyLogs] = useState<SosEmergencyLog[]>(() =>
+    loadStorage('sos_logs', INITIAL_SOS_LOGS)
+  );
+  // Admin User Accounts
+  const [adminUsers, setAdminUsers] = useState<AdminUserRecord[]>(() =>
+    loadStorage('admin_users', INITIAL_ADMIN_USERS)
+  );
+  // Moderatable Directory Members
+  const [directoryMembers, setDirectoryMembers] = useState<CorperDirectoryMember[]>(() =>
+    loadStorage('directory_members', CORPS_MEMBERS_DIRECTORY)
+  );
 
   useEffect(() => saveStorage('profile', profile), [profile]);
   useEffect(() => saveStorage('location', locationSchedule), [locationSchedule]);
@@ -208,6 +260,11 @@ export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => saveStorage('user_feedback', userFeedback), [userFeedback]);
   useEffect(() => saveStorage('webhook_config', webhookConfig), [webhookConfig]);
   useEffect(() => saveStorage('webhook_logs', webhookLogs), [webhookLogs]);
+  useEffect(() => saveStorage('branding_config', brandingConfig), [brandingConfig]);
+  useEffect(() => saveStorage('tracker_config', trackerConfig), [trackerConfig]);
+  useEffect(() => saveStorage('sos_logs', sosEmergencyLogs), [sosEmergencyLogs]);
+  useEffect(() => saveStorage('admin_users', adminUsers), [adminUsers]);
+  useEffect(() => saveStorage('directory_members', directoryMembers), [directoryMembers]);
 
   const fireConfetti = () => {
     try {
@@ -689,6 +746,11 @@ export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUserFeedback(INITIAL_USER_FEEDBACK);
     setWebhookConfig(INITIAL_WEBHOOK_CONFIG);
     setWebhookLogs(INITIAL_WEBHOOK_LOGS);
+    setBrandingConfig(INITIAL_BRANDING_CONFIG);
+    setTrackerConfig(INITIAL_TRACKER_CONFIG);
+    setSosEmergencyLogs(INITIAL_SOS_LOGS);
+    setAdminUsers(INITIAL_ADMIN_USERS);
+    setDirectoryMembers(CORPS_MEMBERS_DIRECTORY);
 
     // Refresh page for pristine unauthenticated state
     window.location.reload();
@@ -711,7 +773,126 @@ export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUserFeedback(INITIAL_USER_FEEDBACK);
     setWebhookConfig(INITIAL_WEBHOOK_CONFIG);
     setWebhookLogs(INITIAL_WEBHOOK_LOGS);
+    setBrandingConfig(INITIAL_BRANDING_CONFIG);
+    setTrackerConfig(INITIAL_TRACKER_CONFIG);
+    setSosEmergencyLogs(INITIAL_SOS_LOGS);
+    setAdminUsers(INITIAL_ADMIN_USERS);
+    setDirectoryMembers(CORPS_MEMBERS_DIRECTORY);
     fireConfetti();
+  };
+
+  // Admin Branding handlers
+  const updateBrandingConfig = (data: Partial<AdminBrandingConfig>) => {
+    setBrandingConfig(prev => ({
+      ...prev,
+      ...data
+    }));
+  };
+
+  const addBroadcastNotice = (notice: Omit<BroadcastNotice, 'id' | 'created_at'>) => {
+    const newNotice: BroadcastNotice = {
+      ...notice,
+      id: `notice-${Date.now()}`,
+      created_at: new Date().toISOString()
+    };
+    setBrandingConfig(prev => ({
+      ...prev,
+      notices: [newNotice, ...prev.notices]
+    }));
+  };
+
+  const updateBroadcastNotice = (id: string, data: Partial<BroadcastNotice>) => {
+    setBrandingConfig(prev => ({
+      ...prev,
+      notices: prev.notices.map(n => (n.id === id ? { ...n, ...data } : n))
+    }));
+  };
+
+  const deleteBroadcastNotice = (id: string) => {
+    setBrandingConfig(prev => ({
+      ...prev,
+      notices: prev.notices.filter(n => n.id !== id)
+    }));
+  };
+
+  // Admin Tracker Config handlers
+  const updateTrackerConfig = (data: Partial<AdminTrackerConfig>) => {
+    setTrackerConfig(prev => ({
+      ...prev,
+      ...data
+    }));
+  };
+
+  // Admin Emergency SOS Logs handlers
+  const addSosEmergencyLog = (log: Omit<SosEmergencyLog, 'id' | 'created_at'>) => {
+    const newLog: SosEmergencyLog = {
+      ...log,
+      id: `sos-${Date.now()}`,
+      created_at: new Date().toISOString()
+    };
+    setSosEmergencyLogs(prev => [newLog, ...prev]);
+  };
+
+  const updateSosEmergencyLog = (id: string, data: Partial<SosEmergencyLog>) => {
+    setSosEmergencyLogs(prev =>
+      prev.map(l => (l.id === id ? { ...l, ...data } : l))
+    );
+  };
+
+  // Admin Security & Users handlers
+  const toggleUserBan = (userId: string, reason?: string) => {
+    setAdminUsers(prev =>
+      prev.map(u => {
+        if (u.id === userId) {
+          const nextBanned = !u.is_banned;
+          return {
+            ...u,
+            is_banned: nextBanned,
+            ban_reason: nextBanned ? (reason || 'Administrative policy suspension') : undefined
+          };
+        }
+        return u;
+      })
+    );
+  };
+
+  const toggleUserAdminRole = (userId: string) => {
+    setAdminUsers(prev =>
+      prev.map(u => (u.id === userId ? { ...u, is_admin: !u.is_admin } : u))
+    );
+  };
+
+  // Admin Content Moderation handlers
+  const toggleMarketplaceTakedown = (itemId: string, reason?: string) => {
+    setMarketplaceItems(prev =>
+      prev.map(item => {
+        if (item.id === itemId) {
+          const nextTakenDown = !item.is_taken_down;
+          return {
+            ...item,
+            is_taken_down: nextTakenDown,
+            takedown_reason: nextTakenDown ? (reason || 'Violated marketplace listing policy') : undefined
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+  const toggleDirectorySuspension = (memberId: string, reason?: string) => {
+    setDirectoryMembers(prev =>
+      prev.map(member => {
+        if (member.id === memberId) {
+          const nextSuspended = !member.is_suspended;
+          return {
+            ...member,
+            is_suspended: nextSuspended,
+            suspension_reason: nextSuspended ? (reason || 'Account under administrative review') : undefined
+          };
+        }
+        return member;
+      })
+    );
   };
 
   return (
@@ -772,7 +953,23 @@ export const NyscProvider: React.FC<{ children: React.ReactNode }> = ({ children
         triggerWebhookTest,
         deleteUserAccountAndData,
         resetToDefaultData,
-        fireConfetti
+        fireConfetti,
+        brandingConfig,
+        updateBrandingConfig,
+        addBroadcastNotice,
+        updateBroadcastNotice,
+        deleteBroadcastNotice,
+        trackerConfig,
+        updateTrackerConfig,
+        sosEmergencyLogs,
+        addSosEmergencyLog,
+        updateSosEmergencyLog,
+        adminUsers,
+        toggleUserBan,
+        toggleUserAdminRole,
+        toggleMarketplaceTakedown,
+        directoryMembers,
+        toggleDirectorySuspension
       }}
     >
       {children}

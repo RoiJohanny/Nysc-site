@@ -18,7 +18,12 @@ import {
   RelocationStep,
   UserFeedback,
   WebhookConfig,
-  WebhookLogItem
+  WebhookLogItem,
+  AdminBrandingConfig,
+  AdminTrackerConfig,
+  SosEmergencyLog,
+  AdminUserRecord,
+  BroadcastNotice
 } from '../types/nysc';
 
 export const NIGERIAN_STATES = [
@@ -1459,6 +1464,209 @@ export const INITIAL_WEBHOOK_LOGS: WebhookLogItem[] = [
     payload_summary: 'Manual Test Ping from Admin Control Panel',
     timestamp: '2026-10-27T12:00:00Z',
     latency_ms: 112
+  }
+];
+
+export const INITIAL_BRANDING_CONFIG: AdminBrandingConfig = {
+  app_logo_url: '/icon.svg',
+  app_name: 'My NYSC Companion',
+  custom_tagline: 'Under The Sun or In The Rain, Service To The Fatherland',
+  notices: [
+    {
+      id: 'notice-1',
+      title: '🚨 Monthly Biometric Clearance Window Closes Nov 25th',
+      message: 'All serving corps members across 774 LGAs must complete biometric attendance before 11:59 PM on the 25th to ensure prompt November alawee credit.',
+      notice_type: 'urgent',
+      target_audience: 'active',
+      is_active: true,
+      author: 'Directorate of Corps Welfare',
+      created_at: '2026-11-01T08:00:00Z'
+    },
+    {
+      id: 'notice-2',
+      title: '📢 ₦77,000 New Minimum Wage Allowance Implementation',
+      message: 'Federal monthly allowance remains standardized at ₦77,000 for all eligible corps members nationwide.',
+      notice_type: 'info',
+      target_audience: 'all',
+      is_active: true,
+      author: 'NYSC Headquarters Abuja',
+      created_at: '2026-10-15T10:30:00Z'
+    },
+    {
+      id: 'notice-3',
+      title: '🛡️ Camp Security & Travel Advisory for Relocated Corpers',
+      message: 'Ensure all transit moves adhere strictly to daylight journey windows. In case of route distress, trigger your in-app SOS immediately.',
+      notice_type: 'warning',
+      target_audience: 'camp',
+      is_active: false,
+      author: 'National Security Liaison',
+      created_at: '2026-10-20T14:15:00Z'
+    }
+  ]
+};
+
+export const INITIAL_TRACKER_CONFIG: AdminTrackerConfig = {
+  biometric_start_day: 1,
+  biometric_deadline_day: 25,
+  require_ppa_letter: true,
+  require_lgi_approval: true,
+  min_monthly_cds_attendance: 4,
+  standard_cds_dues: 1000,
+  default_federal_alawee: 77000,
+  state_allowances: {
+    'Rivers': 10000,
+    'Lagos': 15000,
+    'Delta': 5000,
+    'Akwa Ibom': 5000,
+    'Kano': 5000,
+    'Kaduna': 3000,
+    'Ogun': 5000,
+    'Oyo': 4000,
+    'Enugu': 4000,
+    'Anambra': 8000,
+    'FCT Abuja': 0
+  },
+  batch_streams: [
+    '2026 Batch A Stream 1',
+    '2026 Batch A Stream 2',
+    '2026 Batch B Stream 1',
+    '2026 Batch B Stream 2',
+    '2026 Batch C Stream 1',
+    '2026 Batch C Stream 2'
+  ],
+  default_cds_meeting_day: 'Thursday',
+  default_cds_meeting_time: '10:00 AM'
+};
+
+export const INITIAL_SOS_LOGS: SosEmergencyLog[] = [
+  {
+    id: 'sos-1',
+    user_id: 'user-002',
+    user_name: 'Chidiebere Eze',
+    user_phone: '+234 803 111 2233',
+    state_code: 'RV/26A/1042',
+    state: 'Rivers',
+    lga: 'Port Harcourt',
+    emergency_type: 'transit_accident',
+    latitude: 4.8156,
+    longitude: 7.0498,
+    details: 'Commercial bus broke down along East-West road after dark while returning from PPA.',
+    status: 'dispatched',
+    dispatch_notes: 'LGI Port Harcourt contacted; Rivers NYSC welfare patrol vehicle dispatched.',
+    created_at: '2026-11-04T18:42:00Z'
+  },
+  {
+    id: 'sos-2',
+    user_id: 'user-005',
+    user_name: 'Amina Bello',
+    user_phone: '+234 812 555 9988',
+    state_code: 'LA/26A/3820',
+    state: 'Lagos',
+    lga: 'Ikeja',
+    emergency_type: 'security_threat',
+    latitude: 6.5925,
+    longitude: 3.3444,
+    details: 'Suspicious individuals lingering outside corper quarters near Allen Avenue.',
+    status: 'resolved',
+    dispatch_notes: 'Area Commander Police division notified; patrol unit visited and secured premises.',
+    created_at: '2026-11-02T22:15:00Z',
+    resolved_at: '2026-11-02T23:30:00Z'
+  },
+  {
+    id: 'sos-3',
+    user_id: 'user-009',
+    user_name: 'Tunde Bakare',
+    user_phone: '+234 705 444 6677',
+    state_code: 'FC/26A/8201',
+    state: 'FCT Abuja',
+    lga: 'Abuja Municipal Area Council',
+    emergency_type: 'medical_emergency',
+    latitude: 9.0765,
+    longitude: 7.3986,
+    details: 'Severe malaria crisis during CDS community sanitation exercise.',
+    status: 'resolved',
+    dispatch_notes: 'CDS Medical team administered first aid, transferred to Maitama District Hospital.',
+    created_at: '2026-10-30T11:20:00Z',
+    resolved_at: '2026-10-30T13:45:00Z'
+  }
+];
+
+export const INITIAL_ADMIN_USERS: AdminUserRecord[] = [
+  {
+    id: 'u-1',
+    full_name: 'Chinedu Okeke',
+    phone: '+234 812 345 6789',
+    email: 'chinedu.okeke@nysc.gov.ng',
+    state_code: 'LA/26A/4819',
+    state_of_deployment: 'Lagos',
+    lga: 'Ikeja',
+    batch_stream: '2026 Batch A Stream 1',
+    current_phase: 'ACTIVE',
+    is_admin: true,
+    is_banned: false,
+    is_directory_visible: true,
+    created_at: '2026-03-25T08:00:00Z'
+  },
+  {
+    id: 'u-2',
+    full_name: 'Fatima Abubakar',
+    phone: '+234 803 234 5678',
+    email: 'fatima.abubakar@gmail.com',
+    state_code: 'KD/26A/1204',
+    state_of_deployment: 'Kaduna',
+    lga: 'Kaduna North',
+    batch_stream: '2026 Batch A Stream 1',
+    current_phase: 'ACTIVE',
+    is_admin: false,
+    is_banned: false,
+    is_directory_visible: true,
+    created_at: '2026-03-26T09:15:00Z'
+  },
+  {
+    id: 'u-3',
+    full_name: 'Emeka Nwosu',
+    phone: '+234 814 987 6543',
+    email: 'emeka.nwosu@yahoo.com',
+    state_code: 'RV/26A/5521',
+    state_of_deployment: 'Rivers',
+    lga: 'Port Harcourt',
+    batch_stream: '2026 Batch A Stream 2',
+    current_phase: 'ACTIVE',
+    is_admin: false,
+    is_banned: false,
+    is_directory_visible: true,
+    created_at: '2026-04-02T11:40:00Z'
+  },
+  {
+    id: 'u-4',
+    full_name: 'Aisha Danjuma',
+    phone: '+234 701 334 8899',
+    email: 'aisha.d@outlook.com',
+    state_code: 'KN/26B/3011',
+    state_of_deployment: 'Kano',
+    lga: 'Nasarawa',
+    batch_stream: '2026 Batch B Stream 1',
+    current_phase: 'CAMP',
+    is_admin: false,
+    is_banned: true,
+    ban_reason: 'Spamming commercial promotions across CDS directory chat',
+    is_directory_visible: false,
+    created_at: '2026-06-12T14:20:00Z'
+  },
+  {
+    id: 'u-5',
+    full_name: 'Babatunde Adeyemi',
+    phone: '+234 809 778 1234',
+    email: 'babatunde.adeyemi@gmail.com',
+    state_code: 'OG/26A/9012',
+    state_of_deployment: 'Ogun',
+    lga: 'Abeokuta South',
+    batch_stream: '2026 Batch A Stream 1',
+    current_phase: 'POP',
+    is_admin: false,
+    is_banned: false,
+    is_directory_visible: true,
+    created_at: '2026-03-24T16:00:00Z'
   }
 ];
 

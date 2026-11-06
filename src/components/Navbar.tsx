@@ -28,7 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAdmin,
   isAdminView = false
 }) => {
-  const { profile, switchPhase, financials } = useNysc();
+  const { profile, switchPhase, financials, brandingConfig } = useNysc();
   const { isOnline, lastSynced } = useOnlineStatus();
 
   const phases: { key: NyscPhase; label: string; icon: string }[] = [
@@ -50,11 +50,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           
           {/* Brand Logo with Name Underneath */}
           <div className="flex flex-col items-center justify-center shrink-0 cursor-default select-none">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-[#005a36] to-[#008751] flex items-center justify-center shadow-md shadow-[#008751]/25 text-white font-black text-xs sm:text-sm tracking-wider border border-[#008751]/40">
-              NYSC
-            </div>
+            {brandingConfig?.app_logo_url && brandingConfig.app_logo_url !== '/icon.svg' ? (
+              <img
+                src={brandingConfig.app_logo_url}
+                alt="Logo"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl object-contain border border-[#008751]/40"
+              />
+            ) : (
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-[#005a36] to-[#008751] flex items-center justify-center shadow-md shadow-[#008751]/25 text-white font-black text-xs sm:text-sm tracking-wider border border-[#008751]/40">
+                NYSC
+              </div>
+            )}
             <span className="font-black text-[9px] sm:text-[10px] md:text-xs text-white tracking-tight mt-0.5 leading-none whitespace-nowrap">
-              NYSC Companion
+              {brandingConfig?.app_name || 'NYSC Companion'}
             </span>
           </div>
 
