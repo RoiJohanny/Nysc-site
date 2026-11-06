@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -33,7 +33,16 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Build Application
-        run: npm run build
+        run: |
+          npm run build
+          touch ./dist/.nojekyll
+
+      - name: Deploy to gh-pages branch (Branch fallback)
+        uses: peaceiris/actions-gh-pages@v4
+        if: ${{ always() }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
